@@ -3,9 +3,12 @@ const Queue = require('../models/Queue');
 const Business = require('../models/Business');
 const Notification = require('../models/Notification');
 const Review = require('../models/Review');
+const { getTodayRange } = require('../utils/helpers');
 
 exports.getDashboard = async (req, res, next) => {
   try {
+    const { start, end } = getTodayRange();
+
     const upcomingAppointment = await Appointment.findOne({
       user: req.user._id,
       status: { $in: ['pending', 'confirmed'] },
@@ -14,18 +17,21 @@ exports.getDashboard = async (req, res, next) => {
 
     const activeQueue = await Queue.findOne({
       user: req.user._id,
+      queueDate: { $gte: start, $lte: end },
       status: { $in: ['waiting', 'called'] },
-    }).populate('business', 'name category').sort({ createdAt: -1 });
+    }).populate('business', 'name category').sort({ tokenNumber: 1 });
 
     let queueStatus = null;
     if (activeQueue) {
       const peopleAhead = await Queue.countDocuments({
         business: activeQueue.business._id,
+        queueDate: { $gte: start, $lte: end },
         tokenNumber: { $lt: activeQueue.tokenNumber },
         status: { $in: ['waiting', 'called'] },
       });
       const currentToken = await Queue.findOne({
         business: activeQueue.business._id,
+        queueDate: { $gte: start, $lte: end },
         status: 'called',
       }).sort({ calledAt: -1 });
       queueStatus = {

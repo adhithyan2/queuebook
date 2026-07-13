@@ -1,10 +1,11 @@
 const Appointment = require('../models/Appointment');
 const Queue = require('../models/Queue');
-const { generateTokenNumber } = require('../utils/helpers');
+const { getTodayRange, generateTokenNumber } = require('../utils/helpers');
 
 exports.createAppointment = async (req, res, next) => {
   try {
     const { business, service, date, timeSlot, notes } = req.body;
+    const { start } = getTodayRange();
 
     const appointment = await Appointment.create({
       user: req.user._id,
@@ -23,6 +24,7 @@ exports.createAppointment = async (req, res, next) => {
       user: req.user._id,
       appointment: appointment._id,
       tokenNumber,
+      queueDate: start,
       status: 'waiting',
     });
 

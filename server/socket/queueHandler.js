@@ -1,4 +1,5 @@
 const Queue = require('../models/Queue');
+const { getTodayRange } = require('../utils/helpers');
 
 const setupSocket = (io) => {
   io.on('connection', (socket) => {
@@ -12,7 +13,12 @@ const setupSocket = (io) => {
 
     socket.on('queue-update', async (data) => {
       const { businessId } = data;
-      const queue = await Queue.find({ business: businessId, status: { $in: ['waiting', 'called'] } })
+      const { start, end } = getTodayRange();
+      const queue = await Queue.find({
+        business: businessId,
+        queueDate: { $gte: start, $lte: end },
+        status: { $in: ['waiting', 'called'] },
+      })
         .populate('user', 'name')
         .sort({ tokenNumber: 1 });
 
@@ -43,7 +49,12 @@ const setupSocket = (io) => {
         message: 'New booking received',
         timestamp: new Date(),
       });
-      const queue = await Queue.find({ business: businessId, status: { $in: ['waiting', 'called'] } })
+      const { start, end } = getTodayRange();
+      const queue = await Queue.find({
+        business: businessId,
+        queueDate: { $gte: start, $lte: end },
+        status: { $in: ['waiting', 'called'] },
+      })
         .populate('user', 'name')
         .sort({ tokenNumber: 1 });
       io.to(`business:${businessId}`).emit('queue-refresh', queue);

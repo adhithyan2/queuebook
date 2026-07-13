@@ -1,14 +1,16 @@
 const Queue = require('../models/Queue');
 const Appointment = require('../models/Appointment');
-const { generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
+const { getTodayRange, generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
 
 exports.joinQueue = async (req, res, next) => {
   try {
     const { business, appointment: appointmentId } = req.body;
+    const { start, end } = getTodayRange();
     const tokenNumber = await generateTokenNumber(Queue, business);
 
     const waitingCount = await Queue.countDocuments({
       business,
+      queueDate: { $gte: start, $lte: end },
       status: { $in: ['waiting', 'called'] },
     });
 
@@ -17,6 +19,7 @@ exports.joinQueue = async (req, res, next) => {
       user: req.user._id,
       appointment: appointmentId,
       tokenNumber,
+      queueDate: start,
       status: 'waiting',
       position: waitingCount + 1,
       estimatedWaitTime: calculateWaitTime(waitingCount),
@@ -34,9 +37,14 @@ exports.joinQueue = async (req, res, next) => {
 
 exports.getMyQueue = async (req, res, next) => {
   try {
-    const queues = await Queue.find({ user: req.user._id, status: { $ne: 'cancelled' } })
+    const { start, end } = getTodayRange();
+    const queues = await Queue.find({
+      user: req.user._id,
+      queueDate: { $gte: start, $lte: end },
+      status: { $ne: 'cancelled' },
+    })
       .populate('business', 'name category')
-      .sort({ createdAt: -1 });
+      .sort({ tokenNumber: 1 });
     res.json({ queues });
   } catch (error) {
     next(error);
@@ -51,14 +59,18 @@ exports.getQueueStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Queue not found' });
     }
 
+    const { start, end } = getTodayRange();
+
     const peopleAhead = await Queue.countDocuments({
       business: queue.business,
+      queueDate: { $gte: start, $lte: end },
       tokenNumber: { $lt: queue.tokenNumber },
       status: { $in: ['waiting', 'called'] },
     });
 
     const currentToken = await Queue.findOne({
       business: queue.business,
+      queueDate: { $gte: start, $lte: end },
       status: 'called',
     }).sort({ calledAt: -1 });
 

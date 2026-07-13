@@ -1,7 +1,7 @@
 const Queue = require('../models/Queue');
 const Appointment = require('../models/Appointment');
 const Business = require('../models/Business');
-const { generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
+const { getTodayRange, generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
 
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -10,19 +10,19 @@ exports.getDashboard = async (req, res, next) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { start, end } = getTodayRange();
 
     const todayQueue = await Queue.find({
       business: business._id,
-      createdAt: { $gte: today },
+      queueDate: { $gte: start, $lte: end },
+      status: { $ne: 'cancelled' },
     }).populate('user', 'name email').sort({ tokenNumber: 1 });
 
     const stats = {
-      total: await Queue.countDocuments({ business: business._id, createdAt: { $gte: today } }),
-      waiting: await Queue.countDocuments({ business: business._id, status: 'waiting', createdAt: { $gte: today } }),
-      completed: await Queue.countDocuments({ business: business._id, status: 'completed', createdAt: { $gte: today } }),
-      skipped: await Queue.countDocuments({ business: business._id, status: 'skipped', createdAt: { $gte: today } }),
+      total: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: { $ne: 'cancelled' } }),
+      waiting: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: 'waiting' }),
+      completed: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: 'completed' }),
+      skipped: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: 'skipped' }),
     };
 
     res.json({ business, queue: todayQueue, stats });
@@ -38,8 +38,11 @@ exports.callNext = async (req, res, next) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
+    const { start, end } = getTodayRange();
+
     const nextInQueue = await Queue.findOne({
       business: business._id,
+      queueDate: { $gte: start, $lte: end },
       status: 'waiting',
     }).sort({ tokenNumber: 1 });
 
@@ -104,19 +107,13 @@ exports.addWalkIn = async (req, res, next) => {
     }
 
     const { name } = req.body;
+    const { start, end } = getTodayRange();
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const todayCount = await Queue.countDocuments({
-      business: business._id,
-      createdAt: { $gte: today },
-    });
-
-    const tokenNumber = todayCount + 1;
+    const tokenNumber = await generateTokenNumber(Queue, business._id);
 
     const waitingCount = await Queue.countDocuments({
       business: business._id,
+      queueDate: { $gte: start, $lte: end },
       status: { $in: ['waiting', 'called'] },
     });
 
@@ -124,6 +121,7 @@ exports.addWalkIn = async (req, res, next) => {
       business: business._id,
       walkInName: name?.trim() || 'Walk-in',
       tokenNumber,
+      queueDate: start,
       status: 'waiting',
       position: waitingCount + 1,
       estimatedWaitTime: calculateWaitTime(waitingCount, business.avgServiceTime),
@@ -194,17 +192,18 @@ exports.getAnalytics = async (req, res, next) => {
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
 
     const weeklyData = await Queue.aggregate([
       {
         $match: {
           business: business._id,
-          createdAt: { $gte: sevenDaysAgo },
+          queueDate: { $gte: sevenDaysAgo },
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$queueDate' } },
           count: { $sum: 1 },
           completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
         },

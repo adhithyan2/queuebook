@@ -1,10 +1,22 @@
+const getTodayRange = () => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+};
+
 const generateTokenNumber = async (Queue, businessId) => {
-  const lastQueue = await Queue.findOne({ business: businessId }).sort({ tokenNumber: -1 });
-  return lastQueue ? lastQueue.tokenNumber + 1 : 1;
+  const { start, end } = getTodayRange();
+  const count = await Queue.countDocuments({
+    business: businessId,
+    queueDate: { $gte: start, $lte: end },
+  });
+  return count + 1;
 };
 
 const calculateWaitTime = (position, avgServiceTime = 5) => {
   return position * avgServiceTime;
 };
 
-module.exports = { generateTokenNumber, calculateWaitTime };
+module.exports = { getTodayRange, generateTokenNumber, calculateWaitTime };
