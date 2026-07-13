@@ -340,6 +340,10 @@ JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:3000
 ```
 
+## Live Demo
+
+🔗 **https://queuebook.onrender.com**
+
 ## License
 
 MIT License - feel free to use this project for educational and commercial purposes.
