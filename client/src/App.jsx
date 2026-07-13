@@ -1,17 +1,9 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import AppRoutes from './routes/AppRoutes';
 import IntroScreen from './components/Intro/IntroScreen';
-
-function LoadingSpinner() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-      <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-    </div>
-  );
-}
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false);
@@ -19,16 +11,20 @@ export default function App() {
 
   return (
     <>
-      {!introDone && <IntroScreen onComplete={handleIntroComplete} />}
-      {introDone && (
-        <BrowserRouter>
-          <AuthProvider>
-            <SocketProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <SocketProvider>
+            <div style={{
+              opacity: introDone ? 1 : 0,
+              pointerEvents: introDone ? 'auto' : 'none',
+              transition: 'opacity 500ms ease-in',
+            }}>
               <AppRoutes />
-            </SocketProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      )}
+            </div>
+          </SocketProvider>
+        </AuthProvider>
+      </BrowserRouter>
+      {!introDone && <IntroScreen onComplete={handleIntroComplete} />}
     </>
   );
 }
