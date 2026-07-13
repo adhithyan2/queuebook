@@ -21,8 +21,8 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[80px] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-      <div className="flex items-center justify-between h-full px-8">
+    <header className="fixed top-0 left-0 right-0 h-[72px] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+      <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
