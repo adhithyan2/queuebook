@@ -8,7 +8,7 @@ export default function IntroScreen({ onComplete }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const seen = sessionStorage.getItem(INTRO_KEY) || localStorage.getItem(INTRO_KEY);
+    const seen = localStorage.getItem(INTRO_KEY);
     if (seen) {
       onComplete();
       return;
@@ -33,9 +33,12 @@ export default function IntroScreen({ onComplete }) {
     video.addEventListener('ended', handleEnded);
     video.addEventListener('error', handleError);
 
-    video.play().catch(() => {
-      onComplete();
-    });
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        onComplete();
+      });
+    }
 
     return () => {
       video.removeEventListener('ended', handleEnded);
@@ -61,15 +64,13 @@ export default function IntroScreen({ onComplete }) {
         overflow: 'hidden',
       }}
     >
-      <style>{`
-        * { overflow: hidden !important; }
-        html, body { overflow: hidden !important; height: 100% !important; }
-      `}</style>
       <video
         ref={videoRef}
         src="/intro.mp4"
+        autoPlay
         playsInline
         muted
+        preload="auto"
         style={{
           width: '100vw',
           height: '100vh',
