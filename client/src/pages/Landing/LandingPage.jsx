@@ -168,7 +168,7 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-center">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/landing-bg.png)' }}
+          style={{ backgroundImage: 'url(/landing-bg-final.jpg)' }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#1a0a3e]/80 via-[#2d1566]/50 to-transparent" />
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 15% 50%, #6C4CF1 0%, transparent 50%), radial-gradient(circle at 75% 20%, #9b6dff 0%, transparent 40%)' }} />
@@ -181,7 +181,7 @@ export default function LandingPage() {
               animate="visible"
               custom={0}
             >
-              <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#b89cff] bg-[#6C4CF1]/20 border border-[#6C4CF1]/30 rounded-full mb-8">
+              <span className="inline-block px-4 py-1.5 text-xs font-bold tracking-wider text-white bg-[#6C4CF1]/80 border border-[#6C4CF1]/60 rounded-full mb-8 shadow-lg shadow-[#6C4CF1]/40">
                 SMART QUEUE MANAGEMENT
               </span>
             </motion.div>
@@ -190,7 +190,7 @@ export default function LandingPage() {
               className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.15] mb-8"
             >
               <TypewriterLine text="Skip the Line." delay={0} /><br />
-              <span className="bg-gradient-to-r from-[#b89cff] to-[#6C4CF1] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#d4b8ff] to-[#8B5CF6] bg-clip-text text-transparent drop-shadow-lg">
                 <TypewriterLine text="Book Ahead." delay={0.8} />
               </span>
             </motion.h1>
@@ -200,7 +200,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={2}
-              className="text-lg text-white/60 leading-loose mb-12 max-w-lg mx-auto"
+              className="text-lg text-white/80 leading-loose mb-12 max-w-lg mx-auto font-medium"
             >
               Join the queue remotely, get real-time updates, and never wait in line again.
             </motion.p>
