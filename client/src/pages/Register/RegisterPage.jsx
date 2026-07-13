@@ -36,8 +36,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div>
-      <div className="mb-12 text-center lg:text-left">
+    <div className="max-w-3xl mx-auto">
+      <div className="mb-10 text-center lg:text-left">
         <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
         <p className="text-slate-500 mt-2">Join QueueBook and skip the queue</p>
       </div>
@@ -46,7 +46,7 @@ export default function RegisterPage() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-xl mb-6 flex items-center gap-2"
+          className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-2xl mb-6 flex items-center gap-2"
         >
           <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -55,8 +55,8 @@ export default function RegisterPage() {
         </motion.div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center gap-5 mb-4">
+      <form onSubmit={handleSubmit} className="grid gap-8">
+        <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8 mb-2">
           <Avatar name={form.name || 'U'} size="xl" />
           <div>
             <p className="text-sm font-medium text-slate-700">Profile Photo</p>
@@ -64,47 +64,53 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <Input
-          label="Full Name"
-          type="text"
-          placeholder="John Doe"
-          icon={<HiOutlineUser className="w-4 h-4" />}
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <Input
-          label="Email"
-          type="email"
-          placeholder="you@example.com"
-          icon={<HiOutlineMail className="w-4 h-4" />}
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <Input
-          label="Phone"
-          type="tel"
-          placeholder="+1 (555) 000-0000"
-          icon={<HiOutlinePhone className="w-4 h-4" />}
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        />
-        <div className="relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Minimum 8 characters"
-            icon={<HiOutlineLockClosed className="w-4 h-4" />}
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            minLength={8}
+            label="Full Name"
+            type="text"
+            placeholder="John Doe"
+            icon={<HiOutlineUser className="w-4 h-4" />}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[calc(1.5rem+20px)] text-slate-400 hover:text-slate-600">
-            {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
-          </button>
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            icon={<HiOutlineMail className="w-4 h-4" />}
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Input
+            label="Phone"
+            type="tel"
+            placeholder="+1 (555) 000-0000"
+            icon={<HiOutlinePhone className="w-4 h-4" />}
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Minimum 8 characters"
+              icon={<HiOutlineLockClosed className="w-4 h-4" />}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              minLength={8}
+              required
+            />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
         <Input
           label="Confirm Password"
           type="password"
@@ -115,9 +121,9 @@ export default function RegisterPage() {
           required
         />
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">I am a</label>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-slate-700">I am a</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { value: 'customer', label: 'Customer', desc: 'Book appointments' },
               { value: 'business', label: 'Business', desc: 'Manage queue' },
@@ -126,7 +132,7 @@ export default function RegisterPage() {
                 type="button"
                 key={option.value}
                 onClick={() => setForm({ ...form, role: option.value })}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-2xl border-2 text-left transition-all ${
                   form.role === option.value
                     ? 'border-indigo-500 bg-indigo-50'
                     : 'border-slate-200 bg-white hover:border-slate-300'
@@ -141,7 +147,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="pt-2">
+        <div>
           <Button type="submit" fullWidth size="lg" variant="gradient" disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}
           </Button>

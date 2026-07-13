@@ -104,25 +104,28 @@ export default function BusinessQueuePage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow mb-10">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-1 bg-indigo-50 rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-indigo-600">{stats?.waiting || 0}</p>
-            <p className="text-xs text-indigo-500 mt-1">Waiting</p>
-          </div>
-          <div className="flex-1 bg-emerald-50 rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-emerald-600">{stats?.completed || 0}</p>
-            <p className="text-xs text-emerald-500 mt-1">Completed</p>
-          </div>
-          <div className="flex-1 bg-red-50 rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-red-600">{stats?.skipped || 0}</p>
-            <p className="text-xs text-red-500 mt-1">Skipped</p>
+      <div className="grid gap-10 mb-10">
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 bg-indigo-50 rounded-2xl p-4 text-center">
+              <p className="text-3xl font-bold text-indigo-600">{stats?.waiting || 0}</p>
+              <p className="text-xs text-indigo-500 mt-1">Waiting</p>
+            </div>
+            <div className="flex-1 bg-emerald-50 rounded-2xl p-4 text-center">
+              <p className="text-3xl font-bold text-emerald-600">{stats?.completed || 0}</p>
+              <p className="text-xs text-emerald-500 mt-1">Completed</p>
+            </div>
+            <div className="flex-1 bg-red-50 rounded-2xl p-4 text-center">
+              <p className="text-3xl font-bold text-red-600">{stats?.skipped || 0}</p>
+              <p className="text-xs text-red-500 mt-1">Skipped</p>
+            </div>
           </div>
         </div>
 
-        {queue.filter(q => q.status === 'waiting' || q.status === 'called').length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
+          {queue.filter(q => q.status === 'waiting' || q.status === 'called').length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left text-xs font-medium text-slate-400 pb-4">Token</th>
@@ -205,6 +208,7 @@ export default function BusinessQueuePage() {
           <p className="text-sm text-slate-400 text-center py-8">No completed entries yet</p>
         )}
       </div>
+    </div>
 
       <AnimatePresence>
         {showWalkIn && (
@@ -224,7 +228,7 @@ export default function BusinessQueuePage() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Customer Name</label>
                 <input type="text" value={walkInName} onChange={e => setWalkInName(e.target.value)}
                   placeholder="Walk-in"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                  className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                   onKeyDown={e => { if (e.key === 'Enter') handleAddWalkIn(); }} autoFocus />
               </div>
               <div className="flex gap-4">

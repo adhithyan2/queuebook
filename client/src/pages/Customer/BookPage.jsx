@@ -85,7 +85,7 @@ export default function CustomerBookPage() {
 
   if (success) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg mx-auto">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-xl mx-auto px-4 sm:px-0">
         <div className="bg-white rounded-2xl border border-slate-100 p-8 card-shadow text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
             <HiOutlineCalendar className="w-8 h-8 text-emerald-600" />
@@ -110,7 +110,7 @@ export default function CustomerBookPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-xl mx-auto px-4 sm:px-0">
       <button onClick={() => navigate('/customer/nearby')} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors">
         <HiOutlineArrowLeft className="w-4 h-4" /> Back
       </button>
@@ -132,13 +132,13 @@ export default function CustomerBookPage() {
             <label className="block text-sm font-medium text-slate-700 mb-2">Service</label>
             <input type="text" value={service} onChange={e => setService(e.target.value)}
               placeholder="e.g. Haircut, Checkup, etc."
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+              className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Date</label>
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} min={today}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+              className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
           </div>
 
           {selectedDate && (

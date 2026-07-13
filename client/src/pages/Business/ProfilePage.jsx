@@ -138,7 +138,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="max-w-2xl mx-auto">
       <div className="mb-10">
         <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Business Profile</h1>
         <p className="text-slate-500 mt-2.5">Manage your business details and hours</p>
@@ -155,7 +155,7 @@ export default function BusinessProfilePage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-10 max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-10 max-w-3xl mx-auto px-4 sm:px-0">
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-6">Basic Information</h2>
           <div className="space-y-6">
@@ -209,23 +209,23 @@ export default function BusinessProfilePage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Open</label>
               <input type="time" value={form.openTime} onChange={e => setForm({ ...form, openTime: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Close</label>
               <input type="time" value={form.closeTime} onChange={e => setForm({ ...form, closeTime: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Interval (min)</label>
               <input type="number" min={5} step={5} value={form.interval} onChange={e => setForm({ ...form, interval: Number(e.target.value) })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
             </div>
           </div>
           <div className="mt-5">
             <label className="block text-sm font-medium text-slate-700 mb-2">Avg Service Time (min)</label>
             <input type="number" min={1} value={form.avgServiceTime} onChange={e => setForm({ ...form, avgServiceTime: Number(e.target.value) })}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all max-w-[200px]" />
+              className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all max-w-[200px]" />
           </div>
         </div>
 
@@ -235,13 +235,13 @@ export default function BusinessProfilePage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Token Prefix</label>
               <input type="text" maxLength={5} value={form.tokenPrefix} onChange={e => setForm({ ...form, tokenPrefix: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
               <p className="text-xs text-slate-400 mt-1">e.g. Q, T, #</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Max Daily Tokens</label>
               <input type="number" min={1} max={999} value={form.maxDailyTokens} onChange={e => setForm({ ...form, maxDailyTokens: Number(e.target.value) })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                className="w-full h-[56px] rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
             </div>
           </div>
           <div className="flex items-center gap-3 mt-4">

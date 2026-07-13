@@ -18,7 +18,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto px-4 sm:px-0">
       <div className="mb-10">
         <h1 className="text-4xl font-bold text-slate-900">Profile</h1>
         <p className="text-slate-500 mt-2">Manage your personal information and preferences.</p>

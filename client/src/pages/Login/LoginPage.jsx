@@ -59,7 +59,7 @@ export default function LoginPage() {
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
-        <div>
+        <div className="relative">
           <Input
             label="Password"
             type={showPassword ? 'text' : 'password'}
@@ -69,7 +69,7 @@ export default function LoginPage() {
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[calc(1.5rem+20px)] text-slate-400 hover:text-slate-600">
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
             {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
           </button>
         </div>

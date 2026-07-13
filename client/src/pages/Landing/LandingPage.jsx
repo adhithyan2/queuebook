@@ -281,7 +281,7 @@ export default function LandingPage() {
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 className="group relative p-7 lg:p-8 rounded-[20px] bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_4px_40px_rgba(108,76,241,0.08)] hover:shadow-[0_8px_60px_rgba(108,76,241,0.15)] transition-all duration-300"
               >
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#6C4CF1]/10 to-[#6C4CF1]/5 flex items-center justify-center mb-5 group-hover:from-[#6C4CF1]/20 group-hover:to-[#6C4CF1]/10 transition-all">
+                <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#6C4CF1]/10 to-[#6C4CF1]/5 flex items-center justify-center mb-5 group-hover:from-[#6C4CF1]/20 group-hover:to-[#6C4CF1]/10 transition-all">
                   <f.icon className="w-6 h-6 text-[#6C4CF1]" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{f.title}</h3>

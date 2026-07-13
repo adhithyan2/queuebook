@@ -33,7 +33,7 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
       <Link
         to={item.path}
         onClick={() => onMobileClose?.()}
-        className={`group flex items-center gap-3 pl-5 pr-4 h-13 rounded-2xl text-sm font-medium transition-all duration-200 ${
+        className={`group flex items-center gap-3 pl-5 pr-4 h-[52px] rounded-2xl text-sm font-medium transition-all duration-200 ${
           isActive
             ? 'bg-indigo-50 text-indigo-600 shadow-sm'
             : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
@@ -66,7 +66,7 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
         ))}
         <button
           onClick={logout}
-          className="flex items-center gap-3 pl-5 pr-4 h-13 rounded-2xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
+          className="flex items-center gap-3 pl-5 pr-4 h-[52px] rounded-2xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
         >
           <HiOutlineLogout className="w-[22px] h-[22px] flex-shrink-0" />
           <span>Logout</span>

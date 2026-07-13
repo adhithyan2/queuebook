@@ -53,7 +53,7 @@ export default function CustomerQueuePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-10">
+      <div className="pt-6 mb-10">
         <h1 className="text-4xl font-bold text-slate-900">My Queue</h1>
         <p className="text-slate-500 mt-2">Track your active queue positions in real-time.</p>
       </div>

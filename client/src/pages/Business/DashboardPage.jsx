@@ -77,7 +77,7 @@ export default function BusinessDashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
         {statCards.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -86,7 +86,7 @@ export default function BusinessDashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow min-h-[160px] flex flex-col justify-between"
+              className="bg-white rounded-2xl border border-slate-100 p-8 card-shadow min-h-[160px] flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-3">
                 <Icon className={`w-5 h-5 ${s.color}`} />
@@ -161,9 +161,9 @@ export default function BusinessDashboardPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Analytics */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
+        <div className="bg-white rounded-2xl border border-slate-100 p-8 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-6">Queue Analytics (7 days)</h2>
           {analytics?.analytics?.length > 0 ? (
             <div className="space-y-3">
