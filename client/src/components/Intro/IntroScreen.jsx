@@ -69,7 +69,6 @@ export default function IntroScreen({ onComplete }) {
         src="/intro.mp4"
         autoPlay
         playsInline
-        muted
         preload="auto"
         style={{
           width: '100vw',
