@@ -5,7 +5,7 @@ const INTRO_KEY = 'queuebook_intro_seen';
 export default function IntroScreen({ onComplete }) {
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
-  const [showPlayBtn, setShowPlayBtn] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef(null);
   const completedRef = useRef(false);
 
@@ -26,32 +26,32 @@ export default function IntroScreen({ onComplete }) {
       onComplete();
       return;
     }
+  }, [onComplete]);
 
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.addEventListener('ended', finishIntro);
-    video.addEventListener('error', finishIntro);
+    const handleEnded = () => finishIntro();
+    const handleError = () => finishIntro();
+    const handleCanPlay = () => setVideoReady(true);
 
-    video.muted = true;
-    video.play().then(() => {
-      setShowPlayBtn(true);
-    }).catch(() => {
-      finishIntro();
-    });
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('error', handleError);
+    video.addEventListener('canplay', handleCanPlay);
 
     return () => {
-      video.removeEventListener('ended', finishIntro);
-      video.removeEventListener('error', finishIntro);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('error', handleError);
+      video.removeEventListener('canplay', handleCanPlay);
     };
-  }, [finishIntro, onComplete]);
+  }, [finishIntro]);
 
-  const handleUnmute = () => {
+  const handlePlay = () => {
     const video = videoRef.current;
     if (video) {
       video.muted = false;
       video.play();
-      setShowPlayBtn(false);
     }
   };
 
@@ -77,37 +77,51 @@ export default function IntroScreen({ onComplete }) {
         ref={videoRef}
         src="/intro.mp4"
         playsInline
-        muted
         preload="auto"
         style={{
-          width: '100vw',
-          height: '100vh',
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
           objectFit: 'cover',
         }}
       />
-      {showPlayBtn && (
+      {!videoReady && (
+        <div style={{
+          position: 'absolute',
+          width: 40,
+          height: 40,
+          border: '3px solid rgba(255,255,255,0.2)',
+          borderTopColor: '#fff',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+      )}
+      {videoReady && (
         <button
-          onClick={handleUnmute}
+          onClick={handlePlay}
           style={{
             position: 'absolute',
-            bottom: '10%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '14px 36px',
-            fontSize: '16px',
-            fontWeight: 600,
-            color: '#fff',
-            background: 'rgba(255,255,255,0.15)',
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.2)',
             backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: '50px',
+            border: '2px solid rgba(255,255,255,0.4)',
             cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             transition: 'all 0.3s',
           }}
         >
-          ▶ Play with Sound
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
         </button>
       )}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
