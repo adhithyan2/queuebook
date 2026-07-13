@@ -5,7 +5,7 @@ const INTRO_KEY = 'queuebook_intro_seen';
 export default function IntroScreen({ onComplete }) {
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
   const completedRef = useRef(false);
 
@@ -35,24 +35,24 @@ export default function IntroScreen({ onComplete }) {
 
     const handleEnded = () => finishIntro();
     const handleError = () => finishIntro();
-    const handleCanPlay = () => setVideoReady(true);
 
     video.addEventListener('ended', handleEnded);
     video.addEventListener('error', handleError);
-    video.addEventListener('canplay', handleCanPlay);
+
+    video.muted = true;
+    video.play().catch(() => finishIntro());
 
     return () => {
       video.removeEventListener('ended', handleEnded);
       video.removeEventListener('error', handleError);
-      video.removeEventListener('canplay', handleCanPlay);
     };
   }, [finishIntro]);
 
-  const handlePlay = () => {
+  const handleToggleMute = () => {
     const video = videoRef.current;
     if (video) {
-      video.muted = false;
-      video.play();
+      video.muted = !video.muted;
+      setIsMuted(video.muted);
     }
   };
 
@@ -78,6 +78,7 @@ export default function IntroScreen({ onComplete }) {
         ref={videoRef}
         src="/intro.mp4"
         playsInline
+        muted
         preload="auto"
         style={{
           position: 'absolute',
@@ -86,43 +87,34 @@ export default function IntroScreen({ onComplete }) {
           objectFit: 'cover',
         }}
       />
-      {!videoReady && (
-        <div style={{
+      <button
+        onClick={handleToggleMute}
+        style={{
           position: 'absolute',
-          width: 40,
-          height: 40,
-          border: '3px solid rgba(255,255,255,0.2)',
-          borderTopColor: '#fff',
+          bottom: 24,
+          right: 24,
+          width: 44,
+          height: 44,
           borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-        }} />
-      )}
-      {videoReady && (
-        <button
-          onClick={handlePlay}
-          style={{
-            position: 'absolute',
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.2)',
-            backdropFilter: 'blur(8px)',
-            border: '2px solid rgba(255,255,255,0.4)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s',
-          }}
-        >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <polygon points="5,3 19,12 5,21" />
+          background: 'rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {isMuted ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M16.5 12A4.5 4.5 0 0014 8.18v1.7l2.39 2.39c.07-.2.11-.41.11-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.89 8.89 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
           </svg>
-        </button>
-      )}
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.18v7.64c1.48-.73 2.5-2.25 2.5-3.82zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z"/>
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
