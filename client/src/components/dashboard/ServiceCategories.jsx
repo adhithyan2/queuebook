@@ -23,7 +23,7 @@ const descriptions = {
 export default function ServiceCategories() {
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-900">Book a Service</h2>
         <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
           View all <HiOutlineArrowRight className="w-3.5 h-3.5" />

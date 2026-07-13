@@ -100,7 +100,7 @@ export default function CustomerBookPage() {
             <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-4 h-4" /> {new Date(success.date).toLocaleDateString()}</span>
             <span className="flex items-center gap-1.5"><HiOutlineClock className="w-4 h-4" /> {success.timeSlot}</span>
           </div>
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-4 justify-center">
             <Button variant="gradient" onClick={() => navigate('/customer/queue')}>View Queue</Button>
             <Button variant="secondary" onClick={() => navigate('/customer/nearby')}>Done</Button>
           </div>
@@ -127,7 +127,7 @@ export default function CustomerBookPage() {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Service</label>
             <input type="text" value={service} onChange={e => setService(e.target.value)}

@@ -10,7 +10,7 @@ const places = [
 export default function NearbyWidget() {
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-slate-900">Nearby Services</h3>
         <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700">View all</button>
       </div>

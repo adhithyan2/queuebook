@@ -32,7 +32,7 @@ export default function CustomerAppointmentsPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
+      <div className="mb-10">
         <h1 className="text-4xl font-bold text-slate-900">Appointments</h1>
         <p className="text-slate-500 mt-2">Manage your appointments and bookings.</p>
       </div>
@@ -51,7 +51,7 @@ export default function CustomerAppointmentsPage() {
         ))}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {filtered.length > 0 ? filtered.map((apt, i) => (
           <motion.div
             key={apt._id}

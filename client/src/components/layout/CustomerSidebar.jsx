@@ -34,7 +34,7 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
       <Link
         to={item.path}
         onClick={() => onMobileClose?.()}
-        className={`group flex items-center gap-4 pl-4 pr-4 h-12 rounded-[14px] text-sm font-medium transition-all duration-200 ${
+        className={`group flex items-center gap-3 pl-5 pr-4 h-13 rounded-2xl text-sm font-medium transition-all duration-200 ${
           isActive
             ? 'bg-indigo-50 text-indigo-600 shadow-sm'
             : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
@@ -48,34 +48,34 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 pt-6 pb-6 px-5 flex-shrink-0 border-b border-[#ECECEC]">
+      <div className="flex items-center gap-3 pt-8 pb-8 px-6 flex-shrink-0 border-b border-[#ECECEC]">
         <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
           <HiOutlinePlus className="w-5 h-5 text-white" />
         </div>
         <span className="text-lg font-bold gradient-text">QueueBook</span>
       </div>
 
-      <nav className="flex-1 py-6 space-y-4 overflow-y-auto">
+      <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink key={item.path} item={item} />
         ))}
       </nav>
 
-      <div className="py-4 border-t border-[#ECECEC] space-y-4">
+      <div className="py-5 border-t border-[#ECECEC] space-y-1">
         {bottomItems.map((item) => (
           <NavLink key={item.path} item={item} />
         ))}
         <button
           onClick={logout}
-          className="flex items-center gap-4 pl-4 pr-4 h-12 rounded-[14px] text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
+          className="flex items-center gap-3 pl-5 pr-4 h-13 rounded-2xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
         >
           <HiOutlineLogout className="w-[22px] h-[22px] flex-shrink-0" />
           <span>Logout</span>
         </button>
       </div>
 
-      <div className="px-3 pb-4 pt-4 border-t border-[#ECECEC]">
-        <Link to="/customer/profile" className="flex items-center gap-4 pl-3 pr-3 py-3 rounded-[14px] hover:bg-slate-50 transition-all">
+      <div className="px-3 pb-5 pt-5 border-t border-[#ECECEC]">
+        <Link to="/customer/profile" className="flex items-center gap-3 pl-3 pr-3 py-4 rounded-[14px] hover:bg-slate-50 transition-all">
           <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>

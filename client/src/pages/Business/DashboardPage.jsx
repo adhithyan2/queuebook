@@ -66,10 +66,10 @@ export default function BusinessDashboardPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">{business?.name || 'Business Dashboard'}</h1>
-          <p className="text-slate-500 mt-2">Manage your queue and customer flow.</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">{business?.name || 'Business Dashboard'}</h1>
+          <p className="text-slate-500 mt-2.5">Manage your queue and customer flow.</p>
         </div>
         <Button variant="gradient" onClick={handleCallNext} disabled={!queue.some(q => q.status === 'waiting')}>
           Call Next
@@ -77,7 +77,7 @@ export default function BusinessDashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {statCards.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -100,8 +100,8 @@ export default function BusinessDashboardPage() {
       </div>
 
       {/* Today's Queue */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow mb-8">
-        <div className="flex items-center justify-between mb-5">
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow mb-10">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-slate-900">Today's Queue</h2>
           <span className="text-xs text-slate-400">{queue.length} entries</span>
         </div>
@@ -111,10 +111,10 @@ export default function BusinessDashboardPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Token</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Customer</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Status</th>
-                  <th className="text-right text-xs font-medium text-slate-400 pb-3">Actions</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Token</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Customer</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Status</th>
+                  <th className="text-right text-xs font-medium text-slate-400 pb-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,10 +126,10 @@ export default function BusinessDashboardPage() {
                     transition={{ delay: i * 0.04 }}
                     className="border-b border-slate-50 last:border-0"
                   >
-                    <td className="py-3.5 text-sm font-bold text-slate-800">Q{String(item.tokenNumber).padStart(3, '0')}</td>
-                    <td className="py-3.5 text-sm text-slate-700">{item.user?.name || 'Unknown'}</td>
-                    <td className="py-3.5"><Badge variant={item.status === 'called' ? 'confirmed' : item.status === 'completed' ? 'active' : item.status === 'skipped' ? 'cancelled' : 'pending'}>{item.status}</Badge></td>
-                    <td className="py-3.5 text-right">
+                    <td className="py-4 text-sm font-bold text-slate-800">Q{String(item.tokenNumber).padStart(3, '0')}</td>
+                    <td className="py-4 text-sm text-slate-700">{item.user?.name || 'Unknown'}</td>
+                    <td className="py-4"><Badge variant={item.status === 'called' ? 'confirmed' : item.status === 'completed' ? 'active' : item.status === 'skipped' ? 'cancelled' : 'pending'}>{item.status}</Badge></td>
+                    <td className="py-4 text-right">
                       {item.status === 'waiting' && (
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={() => handleComplete(item._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all" title="Complete">
@@ -164,7 +164,7 @@ export default function BusinessDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Analytics */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Queue Analytics (7 days)</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Queue Analytics (7 days)</h2>
           {analytics?.analytics?.length > 0 ? (
             <div className="space-y-3">
               {analytics.analytics.slice(0, 7).map((day) => (
@@ -189,7 +189,7 @@ export default function BusinessDashboardPage() {
 
         {/* Reviews Summary */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Reviews</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Recent Reviews</h2>
           {reviews.length > 0 ? reviews.slice(0, 4).map((r) => (
             <div key={r._id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
               <div className="flex items-center gap-0.5 text-amber-400 flex-shrink-0 mt-0.5">

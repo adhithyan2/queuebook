@@ -20,12 +20,12 @@ export default function BusinessDashboardPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900">Business Dashboard</h1>
-        <p className="text-slate-500 mt-2">Manage your queue and appointments.</p>
+      <div className="mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Business Dashboard</h1>
+        <p className="text-slate-500 mt-2.5">Manage your queue and appointments.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {stats.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -48,7 +48,7 @@ export default function BusinessDashboardPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-slate-900">Today's Queue</h2>
           <Button variant="gradient" size="sm">Call Next</Button>
         </div>
@@ -57,12 +57,12 @@ export default function BusinessDashboardPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left text-xs font-medium text-slate-400 pb-3">Token</th>
-                <th className="text-left text-xs font-medium text-slate-400 pb-3">Customer</th>
-                <th className="text-left text-xs font-medium text-slate-400 pb-3">Service</th>
-                <th className="text-left text-xs font-medium text-slate-400 pb-3">Time</th>
-                <th className="text-left text-xs font-medium text-slate-400 pb-3">Status</th>
-                <th className="text-right text-xs font-medium text-slate-400 pb-3">Actions</th>
+                <th className="text-left text-xs font-medium text-slate-400 pb-4">Token</th>
+                <th className="text-left text-xs font-medium text-slate-400 pb-4">Customer</th>
+                <th className="text-left text-xs font-medium text-slate-400 pb-4">Service</th>
+                <th className="text-left text-xs font-medium text-slate-400 pb-4">Time</th>
+                <th className="text-left text-xs font-medium text-slate-400 pb-4">Status</th>
+                <th className="text-right text-xs font-medium text-slate-400 pb-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -74,12 +74,12 @@ export default function BusinessDashboardPage() {
                   transition={{ delay: i * 0.04 }}
                   className="border-b border-slate-50 last:border-0"
                 >
-                  <td className="py-3.5 text-sm font-bold text-slate-800">Q{String(item.token).padStart(3, '0')}</td>
-                  <td className="py-3.5 text-sm text-slate-700">{item.name}</td>
-                  <td className="py-3.5 text-sm text-slate-500">{item.service}</td>
-                  <td className="py-3.5 text-sm text-slate-500">{item.time}</td>
-                  <td className="py-3.5"><Badge variant={item.status}>{item.status}</Badge></td>
-                  <td className="py-3.5 text-right">
+                  <td className="py-4 text-sm font-bold text-slate-800">Q{String(item.token).padStart(3, '0')}</td>
+                  <td className="py-4 text-sm text-slate-700">{item.name}</td>
+                  <td className="py-4 text-sm text-slate-500">{item.service}</td>
+                  <td className="py-4 text-sm text-slate-500">{item.time}</td>
+                  <td className="py-4"><Badge variant={item.status}>{item.status}</Badge></td>
+                  <td className="py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all" title="Complete">
                         <HiOutlineCheck className="w-4 h-4" />

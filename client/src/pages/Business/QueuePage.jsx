@@ -89,10 +89,10 @@ export default function BusinessQueuePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">Queue Management</h1>
-          <p className="text-slate-500 mt-2">{stats?.waiting || 0} waiting &middot; {stats?.total || 0} total today</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Queue Management</h1>
+          <p className="text-slate-500 mt-2.5">{stats?.waiting || 0} waiting &middot; {stats?.total || 0} total today</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="secondary" onClick={() => setShowWalkIn(true)}>
@@ -104,8 +104,8 @@ export default function BusinessQueuePage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow mb-8">
-        <div className="flex items-center gap-4 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow mb-10">
+        <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 bg-indigo-50 rounded-2xl p-4 text-center">
             <p className="text-3xl font-bold text-indigo-600">{stats?.waiting || 0}</p>
             <p className="text-xs text-indigo-500 mt-1">Waiting</p>
@@ -125,10 +125,10 @@ export default function BusinessQueuePage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Token</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Customer</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Status</th>
-                  <th className="text-right text-xs font-medium text-slate-400 pb-3">Actions</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Token</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Customer</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Status</th>
+                  <th className="text-right text-xs font-medium text-slate-400 pb-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,10 +140,10 @@ export default function BusinessQueuePage() {
                     transition={{ delay: i * 0.04 }}
                     className="border-b border-slate-50 last:border-0"
                   >
-                    <td className="py-3.5 text-sm font-bold text-slate-800">Q{String(item.tokenNumber).padStart(3, '0')}</td>
-                    <td className="py-3.5 text-sm text-slate-700">{customerName(item)}</td>
-                    <td className="py-3.5"><Badge variant={item.status === 'called' ? 'confirmed' : 'pending'}>{item.status}</Badge></td>
-                    <td className="py-3.5 text-right">
+                    <td className="py-4 text-sm font-bold text-slate-800">Q{String(item.tokenNumber).padStart(3, '0')}</td>
+                    <td className="py-4 text-sm text-slate-700">{customerName(item)}</td>
+                    <td className="py-4"><Badge variant={item.status === 'called' ? 'confirmed' : 'pending'}>{item.status}</Badge></td>
+                    <td className="py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {item.status === 'waiting' && (
                           <>
@@ -179,15 +179,15 @@ export default function BusinessQueuePage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Completed Today</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-6">Completed Today</h2>
         {queue.filter(q => q.status === 'completed' || q.status === 'skipped').length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Token</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Customer</th>
-                  <th className="text-left text-xs font-medium text-slate-400 pb-3">Status</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Token</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Customer</th>
+                  <th className="text-left text-xs font-medium text-slate-400 pb-4">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,20 +214,20 @@ export default function BusinessQueuePage() {
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-slate-900">Add Walk-in</h3>
                 <button onClick={() => setShowWalkIn(false)} className="p-1 rounded-lg hover:bg-slate-100 transition-colors">
                   <HiOutlineX className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
-              <div className="mb-5">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Customer Name</label>
                 <input type="text" value={walkInName} onChange={e => setWalkInName(e.target.value)}
                   placeholder="Walk-in"
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                   onKeyDown={e => { if (e.key === 'Enter') handleAddWalkIn(); }} autoFocus />
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <Button variant="secondary" fullWidth onClick={() => setShowWalkIn(false)}>Cancel</Button>
                 <Button variant="gradient" fullWidth onClick={handleAddWalkIn} disabled={adding}>
                   {adding ? 'Adding...' : 'Add to Queue'}

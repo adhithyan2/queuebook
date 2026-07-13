@@ -26,16 +26,16 @@ export default function BusinessAnalyticsPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900">Analytics</h1>
-        <p className="text-slate-500 mt-2">Track your queue performance over time.</p>
+      <div className="mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Analytics</h1>
+        <p className="text-slate-500 mt-2.5">Track your queue performance over time.</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-        <h2 className="text-lg font-semibold text-slate-900 mb-6">Daily Queue Volume (7 days)</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-8">Daily Queue Volume (7 days)</h2>
         {analytics?.length > 0 ? (
           <>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {analytics.slice(0, 7).map((day) => (
                 <div key={day._id} className="flex items-center gap-4">
                   <span className="text-xs text-slate-500 w-24 flex-shrink-0">
@@ -56,7 +56,7 @@ export default function BusinessAnalyticsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-slate-100">
+            <div className="mt-10 pt-6 border-t border-slate-100">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
                 <div>
                   <p className="text-2xl font-bold text-indigo-600">{analytics.reduce((s, d) => s + d.count, 0)}</p>

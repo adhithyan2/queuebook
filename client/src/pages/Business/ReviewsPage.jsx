@@ -34,14 +34,14 @@ export default function BusinessReviewsPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900">Customer Reviews</h1>
-        <p className="text-slate-500 mt-2">
+      <div className="mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Customer Reviews</h1>
+        <p className="text-slate-500 mt-2.5">
           {reviews.length > 0 ? `${reviews.length} reviews · ${avgRating} avg rating` : 'See what customers say about your business.'}
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {reviews.length > 0 ? reviews.map((r, i) => (
           <motion.div
             key={r._id}

@@ -33,7 +33,7 @@ export default function CustomerDashboardPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       {/* Upcoming Appointment */}
       {upcomingAppointment && (
-        <div className="mb-8">
+        <div className="mb-10">
           <Link to="/customer/appointments" className="block bg-white rounded-2xl border border-slate-100 p-6 card-shadow hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900">Next Appointment</h2>
@@ -46,7 +46,7 @@ export default function CustomerDashboardPage() {
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-semibold text-slate-800">{upcomingAppointment.business?.name}</h3>
                 <p className="text-sm text-slate-500 mt-0.5">{upcomingAppointment.service}</p>
-                <div className="flex items-center gap-4 mt-3 flex-wrap">
+                <div className="flex items-center gap-4 mt-4 flex-wrap">
                   <span className="flex items-center gap-1.5 text-xs text-slate-400"><HiOutlineCalendar className="w-3.5 h-3.5" /> {new Date(upcomingAppointment.date).toLocaleDateString()}</span>
                   <span className="flex items-center gap-1.5 text-xs text-slate-400"><HiOutlineClock className="w-3.5 h-3.5" /> {upcomingAppointment.timeSlot}</span>
                   {upcomingAppointment.tokenNumber && (
@@ -60,7 +60,7 @@ export default function CustomerDashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         {/* Live Queue */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Live Queue</h2>
@@ -144,7 +144,7 @@ export default function CustomerDashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         {/* Recent Appointments */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Appointments</h2>

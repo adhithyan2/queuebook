@@ -54,7 +54,7 @@ export default function CustomerNotificationsPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-4xl font-bold text-slate-900">Notifications</h1>
           <p className="text-slate-500 mt-2">Stay updated with your queue and appointment alerts.</p>

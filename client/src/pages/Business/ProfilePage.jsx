@@ -139,9 +139,9 @@ export default function BusinessProfilePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900">Business Profile</h1>
-        <p className="text-slate-500 mt-2">Manage your business details and hours</p>
+      <div className="mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Business Profile</h1>
+        <p className="text-slate-500 mt-2.5">Manage your business details and hours</p>
       </div>
 
       {message && (
@@ -155,10 +155,10 @@ export default function BusinessProfilePage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-10 max-w-2xl">
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-5">Basic Information</h2>
-          <div className="space-y-5">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Basic Information</h2>
+          <div className="space-y-6">
             <Input label="Business Name" placeholder="Your business name" icon={<HiOutlineViewGrid className="w-4 h-4" />} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
@@ -181,8 +181,8 @@ export default function BusinessProfilePage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-5">Contact & Location</h2>
-          <div className="space-y-5">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Contact & Location</h2>
+          <div className="space-y-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Input label="Address" placeholder="123 Main St" icon={<HiOutlineLocationMarker className="w-4 h-4" />} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="flex-1" />
@@ -204,7 +204,7 @@ export default function BusinessProfilePage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-5">Operating Hours</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Operating Hours</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Open</label>
@@ -230,7 +230,7 @@ export default function BusinessProfilePage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-slate-900 mb-5">Queue Settings</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Queue Settings</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Token Prefix</label>

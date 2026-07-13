@@ -18,7 +18,7 @@ export default function StatsGrid() {
           transition={{ delay: i * 0.05 }}
           className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow min-h-[180px] flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <div className={`w-12 h-12 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
               <svg className={`w-6 h-6 ${stat.color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -27,7 +27,7 @@ export default function StatsGrid() {
           </div>
           <div>
             <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
-            <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+            <p className="text-sm text-slate-500 mt-1.5">{stat.label}</p>
             <p className={`text-xs font-medium mt-1.5 ${stat.color}`}>{stat.change}</p>
           </div>
         </motion.div>

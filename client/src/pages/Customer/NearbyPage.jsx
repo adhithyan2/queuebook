@@ -72,7 +72,7 @@ export default function CustomerNearbyPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
+      <div className="mb-10">
         <h1 className="text-4xl font-bold text-slate-900">Nearby Services</h1>
         <p className="text-slate-500 mt-2">Discover businesses near you with live queue information.</p>
       </div>

@@ -53,7 +53,7 @@ export default function CustomerQueuePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
+      <div className="mb-10">
         <h1 className="text-4xl font-bold text-slate-900">My Queue</h1>
         <p className="text-slate-500 mt-2">Track your active queue positions in real-time.</p>
       </div>
@@ -99,7 +99,7 @@ export default function CustomerQueuePage() {
               ))}
             </div>
 
-            <div className="mb-6">
+            <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-slate-500">Queue Progress</span>
                 <span className="text-xs font-medium text-slate-700">Position {q.position || '-'}</span>
@@ -114,7 +114,7 @@ export default function CustomerQueuePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-6 bg-indigo-50 rounded-2xl mb-6">
+            <div className="flex items-center justify-between p-6 bg-indigo-50 rounded-2xl mb-8">
               <div className="flex items-center gap-3">
                 <HiOutlineClock className="w-5 h-5 text-indigo-500" />
                 <div>

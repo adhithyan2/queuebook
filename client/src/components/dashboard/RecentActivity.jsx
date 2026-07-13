@@ -13,7 +13,7 @@ export default function RecentActivity() {
     <div>
       <h2 className="text-lg font-semibold text-slate-900 mb-6">Recent Activity</h2>
       <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {activities.map((item, i) => {
             const Icon = item.icon;
             return (

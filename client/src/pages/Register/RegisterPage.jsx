@@ -37,7 +37,7 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <div className="mb-10 text-center lg:text-left">
+      <div className="mb-12 text-center lg:text-left">
         <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
         <p className="text-slate-500 mt-2">Join QueueBook and skip the queue</p>
       </div>
