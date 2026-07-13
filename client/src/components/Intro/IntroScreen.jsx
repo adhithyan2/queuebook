@@ -33,15 +33,11 @@ export default function IntroScreen({ onComplete }) {
     video.addEventListener('ended', finishIntro);
     video.addEventListener('error', finishIntro);
 
+    video.muted = true;
     video.play().then(() => {
-      video.muted = false;
+      setShowPlayBtn(true);
     }).catch(() => {
-      video.muted = true;
-      video.play().then(() => {
-        setShowPlayBtn(true);
-      }).catch(() => {
-        finishIntro();
-      });
+      finishIntro();
     });
 
     return () => {
