@@ -31,6 +31,36 @@ const scaleIn = {
   }),
 };
 
+const letterContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.3 } },
+};
+
+const letterChild = {
+  hidden: { opacity: 0, y: 40, rotateX: -90 },
+  visible: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
+
+function TypewriterLine({ text, delay = 0 }) {
+  return (
+    <motion.span
+      className="inline-block"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.04, delayChildren: delay } },
+      }}
+      initial="hidden"
+      animate="visible"
+    >
+      {text.split('').map((char, i) => (
+        <motion.span key={i} className="inline-block" variants={letterChild} style={{ perspective: 400 }}>
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
 
@@ -157,14 +187,12 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.h1
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={1}
               className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.15] mb-8"
             >
-              Skip the Line.<br />
-              <span className="bg-gradient-to-r from-[#b89cff] to-[#6C4CF1] bg-clip-text text-transparent">Book Ahead.</span>
+              <TypewriterLine text="Skip the Line." delay={0} /><br />
+              <span className="bg-gradient-to-r from-[#b89cff] to-[#6C4CF1] bg-clip-text text-transparent">
+                <TypewriterLine text="Book Ahead." delay={0.8} />
+              </span>
             </motion.h1>
 
             <motion.p
