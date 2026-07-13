@@ -200,7 +200,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={2}
-              className="text-lg text-white/80 leading-loose mb-12 max-w-lg mx-auto font-medium"
+              className="text-lg text-white leading-loose mb-12 max-w-lg mx-auto font-medium"
             >
               Join the queue remotely, get real-time updates, and never wait in line again.
             </motion.p>
@@ -214,13 +214,13 @@ export default function LandingPage() {
             >
               <button
                 onClick={() => navigate('/register')}
-                className="px-8 py-3.5 text-sm font-semibold text-white bg-[#6C4CF1] hover:bg-[#5B3DD4] rounded-2xl shadow-xl shadow-[#6C4CF1]/30 transition-all hover:scale-[1.02]"
+                className="px-8 py-3.5 text-sm font-bold text-white bg-[#6C4CF1] hover:bg-[#5B3DD4] rounded-2xl shadow-xl shadow-[#6C4CF1]/50 transition-all hover:scale-[1.02] animate-[glow_2s_ease-in-out_infinite_alternate]"
               >
                 Get Started
               </button>
               <button
                 onClick={() => scroll('how-it-works')}
-                className="px-8 py-3.5 text-sm font-semibold text-white border border-white/20 hover:border-white/40 hover:bg-white/5 rounded-2xl transition-all"
+                className="px-8 py-3.5 text-sm font-semibold text-white border-2 border-white/40 hover:border-white/70 hover:bg-white/10 rounded-2xl transition-all"
               >
                 Learn More
               </button>
@@ -231,7 +231,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={4}
-              className="mt-8 text-sm text-white/40"
+              className="mt-8 text-sm text-white/70"
             >
               Already have an account?{' '}
               <button onClick={() => navigate('/login')} className="text-[#b89cff] hover:text-white font-medium transition-colors underline underline-offset-2">
