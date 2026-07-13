@@ -170,7 +170,7 @@ export default function LandingPage() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: 'url(/landing-bg-final.jpg)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1a0a3e]/80 via-[#2d1566]/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 15% 50%, #6C4CF1 0%, transparent 50%), radial-gradient(circle at 75% 20%, #9b6dff 0%, transparent 40%)' }} />
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12 w-full flex justify-center">
