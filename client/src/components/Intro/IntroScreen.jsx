@@ -12,7 +12,7 @@ export default function IntroScreen({ onComplete }) {
   const finishIntro = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
-    localStorage.setItem(INTRO_KEY, '1');
+    sessionStorage.setItem(INTRO_KEY, '1');
     setFadeOut(true);
     setTimeout(() => {
       setVisible(false);
@@ -21,8 +21,9 @@ export default function IntroScreen({ onComplete }) {
   }, [onComplete]);
 
   useEffect(() => {
-    const seen = localStorage.getItem(INTRO_KEY);
-    if (seen) {
+    const forcePlay = new URLSearchParams(window.location.search).has('intro');
+    const seen = sessionStorage.getItem(INTRO_KEY);
+    if (!forcePlay && seen) {
       onComplete();
       return;
     }
