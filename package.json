@@ -4,7 +4,7 @@
   "description": "QueueBook - Smart Queue Management & Appointment Platform",
   "scripts": {
     "install:all": "cd server && npm install && cd ../client && npm install",
-    "build": "cd client && npm install --include=dev && npm run build",
+    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install",
     "start": "cd server && node server.js",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev"
