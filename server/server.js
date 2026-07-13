@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -12,16 +13,21 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+const CLIENT_URL = process.env.NODE_ENV === 'production'
+  ? process.env.CLIENT_URL
+  : 'http://localhost:3000';
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production'
-      ? process.env.CLIENT_URL
-      : 'http://localhost:3000',
+    origin: CLIENT_URL,
     methods: ['GET', 'POST'],
   },
 });
 
-app.use(cors());
+app.use(cors({
+  origin: CLIENT_URL,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.use('/api/customer', require('./routes/customer'));
@@ -36,6 +42,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, '..', 'client', 'dist');
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 app.use(errorHandler);
 
 setupSocket(io);
@@ -45,7 +62,7 @@ module.exports = { io, app, server };
 const PORT = process.env.PORT || 5000;
 
 connectDB().finally(() => {
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
   });
 });
