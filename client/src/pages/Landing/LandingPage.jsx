@@ -138,20 +138,20 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-center">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/queuelogo.png)' }}
+          style={{ backgroundImage: 'url(/hero-bg.jpg)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0a3e] via-[#2d1566]/90 to-[#0f0524]/95" />
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #6C4CF1 0%, transparent 50%), radial-gradient(circle at 80% 20%, #9b6dff 0%, transparent 40%)' }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a0a3e]/95 via-[#2d1566]/85 to-[#0f0524]/75" />
+        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 15% 50%, #6C4CF1 0%, transparent 50%), radial-gradient(circle at 75% 20%, #9b6dff 0%, transparent 40%)' }} />
 
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12 w-full">
-          <div className="max-w-2xl">
+        <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12 w-full flex justify-center">
+          <div className="max-w-2xl text-center">
             <motion.div
               variants={fadeUp}
               initial="hidden"
               animate="visible"
               custom={0}
             >
-              <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#b89cff] bg-[#6C4CF1]/20 border border-[#6C4CF1]/30 rounded-full mb-6">
+              <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#b89cff] bg-[#6C4CF1]/20 border border-[#6C4CF1]/30 rounded-full mb-8">
                 SMART QUEUE MANAGEMENT
               </span>
             </motion.div>
@@ -161,7 +161,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={1}
-              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.08] mb-6"
+              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.15] mb-8"
             >
               Skip the Line.<br />
               <span className="bg-gradient-to-r from-[#b89cff] to-[#6C4CF1] bg-clip-text text-transparent">Book Ahead.</span>
@@ -172,7 +172,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={2}
-              className="text-lg text-white/60 leading-relaxed mb-10 max-w-lg"
+              className="text-lg text-white/60 leading-loose mb-12 max-w-lg mx-auto"
             >
               Join the queue remotely, get real-time updates, and never wait in line again.
             </motion.p>
@@ -182,7 +182,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={3}
-              className="flex flex-wrap items-center gap-4"
+              className="flex flex-wrap items-center justify-center gap-4"
             >
               <button
                 onClick={() => navigate('/register')}
@@ -203,7 +203,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               custom={4}
-              className="mt-6 text-sm text-white/40"
+              className="mt-8 text-sm text-white/40"
             >
               Already have an account?{' '}
               <button onClick={() => navigate('/login')} className="text-[#b89cff] hover:text-white font-medium transition-colors underline underline-offset-2">
