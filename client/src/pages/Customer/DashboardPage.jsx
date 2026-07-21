@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { customerAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
+import SmartArrivalWidget from '../../components/dashboard/SmartArrivalWidget';
 import {
   HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMarker,
   HiOutlineBell, HiOutlineStar, HiOutlineArrowRight
@@ -59,6 +60,11 @@ export default function CustomerDashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Smart Arrival Recommendation */}
+      <div className="mb-10">
+        <SmartArrivalWidget />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         {/* Live Queue */}

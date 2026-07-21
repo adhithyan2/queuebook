@@ -63,6 +63,10 @@ export const businessAPI = {
   addWalkIn: (data) => API.post('/business/queue/walkin', data),
 };
 
+export const smartArrivalAPI = {
+  getRecommendation: (params) => API.get('/smart-arrival/recommendation', { params }),
+};
+
 export const notificationAPI = {
   getAll: () => API.get('/notifications'),
   markRead: (id) => API.put(`/notifications/${id}/read`),
