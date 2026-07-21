@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { smartArrivalAPI } from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import {
-  HiOutlineClock, HiOutlineUsers, HiOutlineMapPin, HiOutlineArrowRight,
+  HiOutlineClock, HiOutlineUsers, HiOutlineLocationMarker, HiOutlineArrowRight,
   HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSparkles,
 } from 'react-icons/hi';
 
@@ -256,7 +256,7 @@ export default function SmartArrivalWidget() {
       {!hasLocation && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4">
           <div className="flex items-center gap-2">
-            <HiOutlineMapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+            <HiOutlineLocationMarker className="w-4 h-4 text-blue-500 flex-shrink-0" />
             <p className="text-xs text-blue-600">Enable location for accurate travel time estimation.</p>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function SmartArrivalWidget() {
       {hasLocation && !isGoogleMaps && (
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
           <div className="flex items-center gap-2">
-            <HiOutlineMapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <HiOutlineLocationMarker className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <p className="text-xs text-slate-500">Using estimated travel time. Add Google Maps API key for live traffic data.</p>
           </div>
         </div>
@@ -277,7 +277,7 @@ export default function SmartArrivalWidget() {
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
       >
-        <HiOutlineMapPin className="w-4 h-4" />
+        <HiOutlineLocationMarker className="w-4 h-4" />
         {data.recommendation === 'leave_now' ? 'Navigate Now' : 'Open in Google Maps'}
         <HiOutlineArrowRight className="w-4 h-4" />
       </a>
