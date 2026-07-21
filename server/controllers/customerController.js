@@ -3,7 +3,23 @@ const Queue = require('../models/Queue');
 const Business = require('../models/Business');
 const Notification = require('../models/Notification');
 const Review = require('../models/Review');
+const User = require('../models/User');
 const { getTodayRange } = require('../utils/helpers');
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone, location } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, phone, location },
+      { new: true, runValidators: true }
+    );
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.getDashboard = async (req, res, next) => {
   try {

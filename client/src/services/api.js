@@ -49,6 +49,7 @@ export const customerAPI = {
   getDashboard: () => API.get('/customer/dashboard'),
   getNearby: (params) => API.get('/customer/nearby', { params }),
   getReviews: (businessId) => API.get(`/customer/reviews/${businessId}`),
+  updateProfile: (data) => API.put('/customer/profile', data),
 };
 
 export const businessAPI = {
