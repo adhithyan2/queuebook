@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { customerAPI } from '../../services/api';
@@ -14,6 +14,12 @@ export default function CustomerProfilePage() {
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setForm({ name: user.name || '', email: user.email || '', phone: user.phone || '', location: user.location || '' });
+    }
+  }, [user]);
 
   const handleSave = async (e) => {
     e.preventDefault();
