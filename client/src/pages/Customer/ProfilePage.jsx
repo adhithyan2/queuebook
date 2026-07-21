@@ -8,7 +8,7 @@ import Input from '../../components/ui/Input';
 import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker, HiOutlineRefresh } from 'react-icons/hi';
 
 export default function CustomerProfilePage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', location: user?.location || '' });
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -21,7 +21,8 @@ export default function CustomerProfilePage() {
     setError('');
     setSaving(true);
     try {
-      await customerAPI.updateProfile({ name: form.name, phone: form.phone, location: form.location });
+      const res = await customerAPI.updateProfile({ name: form.name, phone: form.phone, location: form.location });
+      setUser(res.data.user);
       setMessage('Profile updated successfully');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
