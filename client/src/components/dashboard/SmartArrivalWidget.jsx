@@ -88,7 +88,27 @@ export default function SmartArrivalWidget() {
     );
   }
 
-  if (!data?.active) return null;
+  if (!data?.active) return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-2xl border border-slate-200 p-6 card-shadow"
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center">
+          <HiOutlineSparkles className="w-6 h-6 text-indigo-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Smart Arrival Assistant</h3>
+          <p className="text-sm text-slate-400">Join a queue to get smart departure recommendations</p>
+        </div>
+      </div>
+      <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 text-center">
+        <HiOutlineClock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <p className="text-sm text-slate-500">No active queue. Book an appointment to enable smart arrival.</p>
+      </div>
+    </motion.div>
+  );
 
   const isGoogleMaps = data.hasGoogleMaps;
   const hasLocation = data.hasLocation;
