@@ -59,8 +59,8 @@ export default function CustomerQueuePage() {
       </div>
 
       {queues.length > 0 ? queues.map((q) => {
-        const ahead = Math.max(0, q.position - 1);
-        const wait = ahead * 5;
+        const ahead = q.peopleAhead ?? Math.max(0, (q.position || 1) - 1);
+        const wait = q.estimatedWaitTime ?? ahead * 5;
         const progress = q.position > 0 ? Math.min((1 / q.position) * 100, 95) : 0;
 
         return (

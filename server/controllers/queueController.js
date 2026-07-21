@@ -43,9 +43,31 @@ exports.getMyQueue = async (req, res, next) => {
       queueDate: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
     })
-      .populate('business', 'name category')
+      .populate('business', 'name category avgServiceTime')
       .sort({ tokenNumber: 1 });
-    res.json({ queues });
+
+    const queuesWithPosition = await Promise.all(
+      queues.map(async (q) => {
+        const peopleAhead = await Queue.countDocuments({
+          business: q.business._id,
+          queueDate: { $gte: start, $lte: end },
+          tokenNumber: { $lt: q.tokenNumber },
+          status: { $in: ['waiting', 'called'] },
+        });
+
+        const avgTime = q.business?.avgServiceTime || 5;
+        const estimatedWaitTime = peopleAhead * avgTime;
+
+        return {
+          ...q.toObject(),
+          position: peopleAhead + 1,
+          peopleAhead,
+          estimatedWaitTime,
+        };
+      })
+    );
+
+    res.json({ queues: queuesWithPosition });
   } catch (error) {
     next(error);
   }
