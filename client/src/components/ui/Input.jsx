@@ -1,8 +1,8 @@
 export default function Input({ label, error, icon, className = '', ...props }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700">
           {label}
         </label>
       )}
@@ -13,11 +13,11 @@ export default function Input({ label, error, icon, className = '', ...props }) 
           </div>
         )}
         <input
-          className={`w-full h-[56px] px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 ${icon ? 'pl-12' : ''} ${error ? 'border-red-300 focus:ring-red-500/20 focus:border-red-400' : ''} ${className}`}
+          className={`w-full h-12 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ${icon ? 'pl-12' : ''} ${error ? 'border-red-300 focus:ring-red-500/20 focus:border-red-400' : ''} ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   );
 }

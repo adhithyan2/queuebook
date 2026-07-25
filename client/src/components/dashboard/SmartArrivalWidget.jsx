@@ -71,10 +71,10 @@ export default function SmartArrivalWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow">
+      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-            <HiOutlineSparkles className="w-6 h-6 text-indigo-500 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+            <HiOutlineSparkles className="w-6 h-6 text-primary animate-pulse" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Smart Arrival Assistant</h3>
@@ -92,11 +92,11 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-2xl border border-slate-200 p-6 card-shadow"
+      className="bg-gradient-to-br from-slate-50 to-primary-50 rounded-[18px] border border-slate-200 p-6 card-shadow"
     >
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center">
-          <HiOutlineSparkles className="w-6 h-6 text-indigo-400" />
+          <HiOutlineSparkles className="w-6 h-6 text-primary/60" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Smart Arrival Assistant</h3>
@@ -161,12 +161,12 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${status.bg} rounded-2xl border ${status.border} p-6 card-shadow`}
+      className={`bg-gradient-to-br ${status.bg} rounded-[18px] border ${status.border} p-6 card-shadow-lg`}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center">
-            <HiOutlineSparkles className="w-6 h-6 text-indigo-500" />
+            <HiOutlineSparkles className="w-6 h-6 text-primary" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Smart Arrival Assistant</h3>
@@ -181,7 +181,7 @@ export default function SmartArrivalWidget() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
           <p className="text-xs text-slate-500 mb-1">Queue No.</p>
-          <p className="text-2xl font-bold text-indigo-600">Q{String(data.queueNumber).padStart(3, '0')}</p>
+          <p className="text-2xl font-bold text-primary">Q{String(data.queueNumber).padStart(3, '0')}</p>
         </div>
         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center">
           <p className="text-xs text-slate-500 mb-1">People Ahead</p>
@@ -275,7 +275,7 @@ export default function SmartArrivalWidget() {
         href={navUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+        className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
       >
         <HiOutlineLocationMarker className="w-4 h-4" />
         {data.recommendation === 'leave_now' ? 'Navigate Now' : 'Open in Google Maps'}

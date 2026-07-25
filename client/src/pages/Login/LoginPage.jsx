@@ -31,9 +31,9 @@ export default function LoginPage() {
 
   return (
     <div>
-      <div className="mb-12 text-center lg:text-left">
+      <div className="mb-10">
         <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
-        <p className="text-slate-500 mt-2">Sign in to your QueueBook account</p>
+        <p className="text-slate-500 mt-2 text-sm">Sign in to your QueueBook account</p>
       </div>
 
       {error && (
@@ -49,7 +49,7 @@ export default function LoginPage() {
         </motion.div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <Input
           label="Email"
           type="email"
@@ -63,13 +63,13 @@ export default function LoginPage() {
           <Input
             label="Password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             icon={<HiOutlineLockClosed className="w-4 h-4" />}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[38px] text-slate-400 hover:text-slate-600 transition-colors">
             {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
           </button>
         </div>
@@ -80,11 +80,11 @@ export default function LoginPage() {
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
             />
             <span className="text-sm text-slate-600">Remember me</span>
           </label>
-          <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
             Forgot password?
           </Link>
         </div>
@@ -112,7 +112,7 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-slate-500 mt-8">
         Don't have an account?{' '}
-        <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-700">Create one</Link>
+        <Link to="/register" className="font-semibold text-primary hover:text-primary-dark transition-colors">Create one</Link>
       </p>
     </div>
   );

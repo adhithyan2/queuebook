@@ -15,9 +15,7 @@ export default function CustomerQueuePage() {
       .then(res => {
         const active = res.data.queues?.filter(q => q.status === 'waiting' || q.status === 'called') || [];
         setQueues(active);
-        active.forEach(q => {
-          if (socket) socket.emit('join-queue-room', q._id);
-        });
+        active.forEach(q => { if (socket) socket.emit('join-queue-room', q._id); });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -29,12 +27,7 @@ export default function CustomerQueuePage() {
       setQueues(prev => prev.map(q => {
         if (q._id === data.queueId) {
           const ahead = data.peopleAhead;
-          const wait = ahead * 5;
-          return {
-            ...q,
-            position: data.peopleAhead + 1,
-            estimatedWaitTime: wait,
-          };
+          return { ...q, position: data.peopleAhead + 1, estimatedWaitTime: ahead * 5 };
         }
         return q;
       }));
@@ -44,18 +37,14 @@ export default function CustomerQueuePage() {
   }, [socket]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
   }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="pt-6 mb-10">
-        <h1 className="text-4xl font-bold text-slate-900">My Queue</h1>
-        <p className="text-slate-500 mt-2">Track your active queue positions in real-time.</p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900">My Queue</h1>
+        <p className="text-slate-500 mt-1 text-sm">Track your active queue positions in real-time.</p>
       </div>
 
       {queues.length > 0 ? queues.map((q) => {
@@ -64,98 +53,85 @@ export default function CustomerQueuePage() {
         const progress = q.position > 0 ? Math.min((1 / q.position) * 100, 95) : 0;
 
         return (
-          <motion.div
-            key={q._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow max-w-2xl"
-          >
+          <motion.div key={q._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow max-w-2xl mb-6">
             {ahead === 1 && q.status !== 'called' && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-6 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl"
-              >
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                className="mb-5 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <HiOutlineBell className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <p className="text-sm font-semibold text-amber-700">You're almost there! Only 1 person ahead of you.</p>
+                <p className="text-sm font-semibold text-amber-700">You're almost there! Only 1 person ahead.</p>
               </motion.div>
             )}
             {ahead === 0 && q.status !== 'called' && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-6 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl"
-              >
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                className="mb-5 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
                 <HiOutlineBell className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                 <p className="text-sm font-semibold text-emerald-700">You're next! Be ready to be called.</p>
               </motion.div>
             )}
-            <div className="flex items-center justify-between mb-8">
+
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <HiOutlineUsers className="w-7 h-7 text-emerald-600" />
+                <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+                  <HiOutlineUsers className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">{q.business?.name || 'Business'}</h3>
+                  <h3 className="text-base font-semibold text-slate-900">{q.business?.name || 'Business'}</h3>
                   <p className="text-sm text-slate-500">Token Q{String(q.tokenNumber).padStart(3, '0')}</p>
                 </div>
               </div>
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl font-medium">
+              <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {q.status === 'called' ? 'Called' : 'In Queue'}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-3 gap-4 mb-6">
               {[
-                { label: 'Position', value: `${q.position || '-'}`, color: 'text-indigo-600' },
+                { label: 'Position', value: `${q.position || '-'}`, color: 'text-primary' },
                 { label: 'Token', value: `Q${String(q.tokenNumber).padStart(3, '0')}`, color: 'text-slate-900' },
                 { label: 'People Ahead', value: ahead, color: 'text-amber-600' },
               ].map((item, i) => (
-                <div key={i} className="bg-slate-50 rounded-2xl p-4 text-center">
+                <div key={i} className="bg-slate-50 rounded-xl p-4 text-center">
                   <p className="text-xs text-slate-500 mb-1">{item.label}</p>
-                  <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
+                  <p className={`text-xl font-bold ${item.color}`}>{item.value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mb-8">
+            <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-500">Queue Progress</span>
-                <span className="text-xs font-medium text-slate-700">Position {q.position || '-'}</span>
+                <span className="text-xs text-slate-500 font-medium">Queue Progress</span>
+                <span className="text-xs font-semibold text-slate-700">Position {q.position || '-'}</span>
               </div>
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="h-full gradient-primary rounded-full"
-                />
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }} className="h-full gradient-primary rounded-full" />
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-6 bg-indigo-50 rounded-2xl mb-8">
+            <div className="flex items-center justify-between p-5 bg-primary-50 rounded-xl">
               <div className="flex items-center gap-3">
-                <HiOutlineClock className="w-5 h-5 text-indigo-500" />
+                <HiOutlineClock className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-xs text-indigo-600 font-medium">Estimated Wait Time</p>
-                  <p className="text-xl font-bold text-indigo-700">~{wait} minutes</p>
+                  <p className="text-xs text-primary font-medium">Estimated Wait</p>
+                  <p className="text-lg font-bold text-primary">~{wait} min</p>
                 </div>
               </div>
-              <button className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2">
-                <HiOutlineBell className="w-4 h-4" /> Notify Me
+              <button className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all">
+                Notify Me
               </button>
             </div>
           </motion.div>
         );
       }) : (
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 lg:p-20 text-center max-w-lg mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-5">
+        <div className="bg-white rounded-[18px] border border-slate-100 p-16 text-center max-w-lg mx-auto card-shadow">
+          <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
             <HiOutlineTrendingUp className="w-8 h-8 text-slate-300" />
           </div>
           <h3 className="text-lg font-semibold text-slate-700 mb-2">Not in any queue</h3>
-          <p className="text-sm text-slate-400">Book an appointment to join a queue.</p>
-          <Link to="/customer/nearby" className="mt-4 inline-block px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-all">
+          <p className="text-sm text-slate-400 mb-4">Book an appointment to join a queue.</p>
+          <Link to="/customer/nearby" className="inline-block px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-all">
             Find Services
           </Link>
         </div>

@@ -16,14 +16,14 @@ export default function CustomerLayout() {
       <div
         className="transition-[margin] duration-300 ease-in-out"
         style={{
-          paddingTop: '120px',
+          paddingTop: '96px',
           marginLeft: sidebarCollapsed ? '24px' : '280px',
           marginRight: sidebarCollapsed ? '24px' : '0px',
           width: sidebarCollapsed ? 'calc(100% - 48px)' : 'calc(100% - 280px)',
         }}
       >
-        <Container className="py-10">
-          <main className="space-y-12">
+        <Container className="py-8">
+          <main className="space-y-10">
             <Outlet />
           </main>
         </Container>

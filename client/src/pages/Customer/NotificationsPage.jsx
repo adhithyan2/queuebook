@@ -7,9 +7,7 @@ export default function CustomerNotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadNotifications();
-  }, []);
+  useEffect(() => { loadNotifications(); }, []);
 
   const loadNotifications = () => {
     notificationAPI.getAll()
@@ -19,17 +17,11 @@ export default function CustomerNotificationsPage() {
   };
 
   const handleMarkRead = async (id) => {
-    try {
-      await notificationAPI.markRead(id);
-      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
-    } catch {}
+    try { await notificationAPI.markRead(id); setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n)); } catch {}
   };
 
   const handleMarkAllRead = async () => {
-    try {
-      await notificationAPI.markAllRead();
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch {}
+    try { await notificationAPI.markAllRead(); setNotifications(prev => prev.map(n => ({ ...n, read: true }))); } catch {}
   };
 
   const getTimeAgo = (date) => {
@@ -43,24 +35,20 @@ export default function CustomerNotificationsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
   }
 
   const unread = notifications.filter(n => !n.read).length;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-slate-500 mt-2">Stay updated with your queue and appointment alerts.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
+          <p className="text-slate-500 mt-1 text-sm">Stay updated with your queue and appointment alerts.</p>
         </div>
         {unread > 0 && (
-          <button onClick={handleMarkAllRead} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+          <button onClick={handleMarkAllRead} className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
             Mark all read
           </button>
         )}
@@ -68,18 +56,14 @@ export default function CustomerNotificationsPage() {
 
       <div className="space-y-3">
         {notifications.length > 0 ? notifications.map((n, i) => (
-          <motion.div
-            key={n._id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.04 }}
+          <motion.div key={n._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.03 }}
             onClick={() => !n.read && handleMarkRead(n._id)}
-            className={`flex items-start gap-5 p-5 rounded-2xl transition-all cursor-pointer ${
-              n.read ? 'bg-white border border-slate-100' : 'bg-indigo-50/60 border border-indigo-100'
-            }`}
-          >
+            className={`flex items-start gap-4 p-5 rounded-[18px] transition-all cursor-pointer ${
+              n.read ? 'bg-white border border-slate-100 card-shadow' : 'bg-primary-50/60 border border-primary-100'
+            }`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              n.read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600'
+              n.read ? 'bg-slate-100 text-slate-400' : 'bg-primary-100 text-primary'
             }`}>
               <HiOutlineBell className="w-5 h-5" />
             </div>
@@ -92,13 +76,11 @@ export default function CustomerNotificationsPage() {
               </div>
               <p className="text-sm text-slate-500">{n.message}</p>
             </div>
-            {!n.read && <span className="w-2 h-2 bg-indigo-600 rounded-full flex-shrink-0 mt-2" />}
+            {!n.read && <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />}
           </motion.div>
         )) : (
-          <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
-              <HiOutlineBell className="w-8 h-8 text-slate-300" />
-            </div>
+          <div className="bg-white rounded-[18px] border border-slate-100 p-16 text-center card-shadow">
+            <HiOutlineBell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-600">No notifications yet</p>
           </div>
         )}

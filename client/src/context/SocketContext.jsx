@@ -10,7 +10,7 @@ export function SocketProvider({ children }) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const newSocket = io('/', { auth: { token } });
+    const newSocket = io('http://localhost:5000', { auth: { token } });
     setSocket(newSocket);
 
     return () => newSocket.close();
