@@ -32,8 +32,8 @@ export default function LoginPage() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
-        <p className="text-slate-500 mt-2 text-sm">Sign in to your QueueBook account</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Welcome back</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Sign in to your QueueBook account</p>
       </div>
 
       {error && (
@@ -69,7 +69,7 @@ export default function LoginPage() {
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[38px] text-slate-400 hover:text-slate-600 transition-colors">
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[38px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
             {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
           </button>
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               onChange={(e) => setRemember(e.target.checked)}
               className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
             />
-            <span className="text-sm text-slate-600">Remember me</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Remember me</span>
           </label>
           <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
             Forgot password?
@@ -98,10 +98,10 @@ export default function LoginPage() {
 
       <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-slate-200 dark:border-slate-600" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white px-3 text-slate-400">or continue with</span>
+          <span className="bg-white dark:bg-slate-800 px-3 text-slate-400 dark:text-slate-500">or continue with</span>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export default function LoginPage() {
         Continue with Google
       </Button>
 
-      <p className="text-center text-sm text-slate-500 mt-8">
+      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-8">
         Don't have an account?{' '}
         <Link to="/register" className="font-semibold text-primary hover:text-primary-dark transition-colors">Create one</Link>
       </p>

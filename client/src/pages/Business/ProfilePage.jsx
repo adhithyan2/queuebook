@@ -83,8 +83,8 @@ export default function BusinessProfilePage() {
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
 
   const Section = ({ title, children }) => (
-    <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
-      <h2 className="text-lg font-semibold text-slate-900 mb-5">{title}</h2>
+    <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow">
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-5">{title}</h2>
       {children}
     </div>
   );
@@ -92,8 +92,8 @@ export default function BusinessProfilePage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl space-y-6">
       <div className="mb-2">
-        <h1 className="text-2xl font-bold text-slate-900">Business Profile</h1>
-        <p className="text-slate-500 mt-1 text-sm">Manage your business details and hours.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Business Profile</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage your business details and hours.</p>
       </div>
 
       {message && <div className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm p-4 rounded-xl">{message}</div>}
@@ -104,20 +104,20 @@ export default function BusinessProfilePage() {
           <div className="space-y-5">
             <Input label="Business Name" placeholder="Your business name" icon={<HiOutlineViewGrid className="w-4 h-4" />} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
               <div className="grid grid-cols-3 gap-3">
                 {categories.map(cat => (
                   <button type="button" key={cat.value} onClick={() => setForm({ ...form, category: cat.value })}
                     className={`p-3 rounded-xl border-2 text-center text-sm font-semibold transition-all ${
-                      form.category === cat.value ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      form.category === cat.value ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-300'
                     }`}>{cat.label}</button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Description</label>
               <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                 placeholder="Describe your business..." />
             </div>
           </div>
@@ -148,46 +148,46 @@ export default function BusinessProfilePage() {
         <Section title="Operating Hours">
           <div className="grid grid-cols-3 gap-4 mb-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Open</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Open</label>
               <input type="time" value={form.openTime} onChange={e => setForm({ ...form, openTime: e.target.value })}
-                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Close</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Close</label>
               <input type="time" value={form.closeTime} onChange={e => setForm({ ...form, closeTime: e.target.value })}
-                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Interval (min)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Interval (min)</label>
               <input type="number" min={5} step={5} value={form.interval} onChange={e => setForm({ ...form, interval: Number(e.target.value) })}
-                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Avg Service Time (min)</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Avg Service Time (min)</label>
             <input type="number" min={1} value={form.avgServiceTime} onChange={e => setForm({ ...form, avgServiceTime: Number(e.target.value) })}
-              className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all max-w-[200px]" />
+              className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all max-w-[200px]" />
           </div>
         </Section>
 
         <Section title="Queue Settings">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Token Prefix</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Token Prefix</label>
               <input type="text" maxLength={5} value={form.tokenPrefix} onChange={e => setForm({ ...form, tokenPrefix: e.target.value })}
-                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-              <p className="text-xs text-slate-400 mt-1">e.g. Q, T, #</p>
+                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">e.g. Q, T, #</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Max Daily Tokens</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Max Daily Tokens</label>
               <input type="number" min={1} max={999} value={form.maxDailyTokens} onChange={e => setForm({ ...form, maxDailyTokens: Number(e.target.value) })}
-                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
           </div>
           <div className="flex items-center gap-3">
             <input type="checkbox" id="autoAssignToken" checked={form.autoAssignToken} onChange={e => setForm({ ...form, autoAssignToken: e.target.checked })}
               className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary" />
-            <label htmlFor="autoAssignToken" className="text-sm text-slate-700">Auto-assign token on booking</label>
+            <label htmlFor="autoAssignToken" className="text-sm text-slate-700 dark:text-slate-300">Auto-assign token on booking</label>
           </div>
         </Section>
 

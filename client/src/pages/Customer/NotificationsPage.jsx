@@ -44,8 +44,8 @@ export default function CustomerNotificationsPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-slate-500 mt-1 text-sm">Stay updated with your queue and appointment alerts.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Notifications</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Stay updated with your queue and appointment alerts.</p>
         </div>
         {unread > 0 && (
           <button onClick={handleMarkAllRead} className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
@@ -60,28 +60,28 @@ export default function CustomerNotificationsPage() {
             transition={{ delay: i * 0.03 }}
             onClick={() => !n.read && handleMarkRead(n._id)}
             className={`flex items-start gap-4 p-5 rounded-[20px] transition-all cursor-pointer ${
-              n.read ? 'bg-white border border-slate-100 card-shadow' : 'bg-primary-50/60 border border-primary-100'
+              n.read ? 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 card-shadow' : 'bg-primary-50/60 border border-primary-100'
             }`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              n.read ? 'bg-slate-100 text-slate-400' : 'bg-primary-100 text-primary'
+              n.read ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500' : 'bg-primary-100 text-primary'
             }`}>
               <HiOutlineBell className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <h4 className={`text-sm font-semibold ${n.read ? 'text-slate-700' : 'text-slate-900'}`}>{n.title}</h4>
-                <span className="flex items-center gap-1 text-xs text-slate-400 flex-shrink-0 ml-2">
+                <h4 className={`text-sm font-semibold ${n.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-slate-100'}`}>{n.title}</h4>
+                <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 ml-2">
                   <HiOutlineClock className="w-3 h-3" /> {getTimeAgo(n.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-slate-500">{n.message}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{n.message}</p>
             </div>
             {!n.read && <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />}
           </motion.div>
         )) : (
-          <div className="bg-white rounded-[20px] border border-slate-100 p-16 text-center card-shadow">
+          <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-16 text-center card-shadow">
             <HiOutlineBell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-slate-600">No notifications yet</p>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No notifications yet</p>
           </div>
         )}
       </div>

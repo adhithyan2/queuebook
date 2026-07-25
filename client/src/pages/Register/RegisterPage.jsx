@@ -38,8 +38,8 @@ export default function RegisterPage() {
   return (
     <div>
       <div className="mb-8 text-center lg:text-left">
-        <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
-        <p className="text-slate-500 mt-2 text-sm">Join QueueBook and skip the queue</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Create account</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Join QueueBook and skip the queue</p>
       </div>
 
       {error && (
@@ -59,8 +59,8 @@ export default function RegisterPage() {
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4">
           <Avatar name={form.name || 'U'} size="xl" />
           <div>
-            <p className="text-sm font-medium text-slate-700">Profile Photo</p>
-            <p className="text-xs text-slate-400 mt-0.5">Click to upload</p>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Profile Photo</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Click to upload</p>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ export default function RegisterPage() {
               minLength={8}
               required
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[38px] text-slate-400 hover:text-slate-600 transition-colors">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-[38px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
               {showPassword ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
             </button>
           </div>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
         />
 
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-slate-700">I am a</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">I am a</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { value: 'customer', label: 'Customer', desc: 'Book appointments' },
@@ -135,13 +135,13 @@ export default function RegisterPage() {
                 className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
                   form.role === option.value
                     ? 'border-primary bg-primary-50'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-300'
                 }`}
               >
-                <p className={`text-sm font-semibold ${form.role === option.value ? 'text-primary' : 'text-slate-700'}`}>
+                <p className={`text-sm font-semibold ${form.role === option.value ? 'text-primary' : 'text-slate-700 dark:text-slate-300'}`}>
                   {option.label}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">{option.desc}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{option.desc}</p>
               </button>
             ))}
           </div>
@@ -154,7 +154,7 @@ export default function RegisterPage() {
         </div>
       </form>
 
-      <p className="text-center text-sm text-slate-500 mt-8">
+      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-8">
         Already have an account?{' '}
         <Link to="/login" className="font-semibold text-primary hover:text-primary-dark transition-colors">Sign in</Link>
       </p>

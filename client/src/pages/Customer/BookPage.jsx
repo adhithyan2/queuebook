@@ -52,22 +52,22 @@ export default function CustomerBookPage() {
   };
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
-  if (!business) return <div className="text-center py-16"><p className="text-sm text-slate-500">Business not found</p><button onClick={() => navigate('/customer/nearby')} className="mt-4 text-sm font-semibold text-primary">Back to Nearby</button></div>;
+  if (!business) return <div className="text-center py-16"><p className="text-sm text-slate-500 dark:text-slate-400">Business not found</p><button onClick={() => navigate('/customer/nearby')} className="mt-4 text-sm font-semibold text-primary">Back to Nearby</button></div>;
 
   if (success) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-xl mx-auto">
-        <div className="bg-white rounded-[20px] border border-slate-100 p-10 card-shadow-lg text-center">
+        <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-10 card-shadow-lg text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
             <HiOutlineCalendar className="w-8 h-8 text-emerald-600" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Booking Confirmed!</h2>
-          <p className="text-sm text-slate-500 mb-6">{business.name}</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Booking Confirmed!</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{business.name}</p>
           <div className="bg-primary-50 rounded-2xl p-5 mb-6">
             <p className="text-xs text-primary font-medium mb-1">Your Token</p>
             <p className="text-4xl font-bold text-primary">Q{String(success.tokenNumber).padStart(3, '0')}</p>
           </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-slate-600 mb-6">
+          <div className="flex items-center justify-center gap-6 text-sm text-slate-600 dark:text-slate-400 mb-6">
             <span className="flex items-center gap-1.5"><HiOutlineCalendar className="w-4 h-4" /> {new Date(success.date).toLocaleDateString()}</span>
             <span className="flex items-center gap-1.5"><HiOutlineClock className="w-4 h-4" /> {success.timeSlot}</span>
           </div>
@@ -82,41 +82,41 @@ export default function CustomerBookPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-xl mx-auto">
-      <button onClick={() => navigate('/customer/nearby')} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors">
+      <button onClick={() => navigate('/customer/nearby')} className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 mb-6 transition-colors">
         <HiOutlineArrowLeft className="w-4 h-4" /> Back
       </button>
 
-      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow mb-6">
+      <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-6 card-shadow mb-6">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
             <HiOutlineLocationMarker className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">{business.name}</h1>
-            <p className="text-sm text-slate-500 capitalize">{business.category}</p>
-            {business.address && <p className="text-xs text-slate-400 mt-1">{business.address}</p>}
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{business.name}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">{business.category}</p>
+            {business.address && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{business.address}</p>}
           </div>
         </div>
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Service</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Service</label>
             <input type="text" value={service} onChange={e => setService(e.target.value)} placeholder="e.g. Haircut, Checkup, etc."
-              className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white dark:bg-slate-800" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Date</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date</label>
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} min={today}
-              className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white dark:bg-slate-800" />
           </div>
           {selectedDate && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Time Slot</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Time Slot</label>
               <div className="grid grid-cols-4 gap-2">
                 {timeSlots.map(slot => (
                   <button key={slot} type="button" onClick={() => setSelectedSlot(slot)}
                     className={`p-2.5 rounded-xl border-2 text-center text-xs font-semibold transition-all ${
-                      selectedSlot === slot ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      selectedSlot === slot ? 'border-primary bg-primary-50 text-primary' : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500'
                     }`}>{slot}</button>
                 ))}
               </div>

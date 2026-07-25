@@ -133,7 +133,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-800 overflow-x-hidden">
 
       {/* ─── Navbar ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
@@ -249,7 +249,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Features ─── */}
-      <section id="features" className="py-24 lg:py-32 bg-white">
+      <section id="features" className="py-24 lg:py-32 bg-white dark:bg-slate-800">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -261,10 +261,10 @@ export default function LandingPage() {
             <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#6C4CF1] bg-[#6C4CF1]/10 rounded-full mb-4">
               FEATURES
             </span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-slate-100 mb-4">
               Everything you need
             </h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+            <p className="text-lg text-gray-500 dark:text-slate-400 max-w-xl mx-auto">
               Queue management made simple for both customers and businesses.
             </p>
           </motion.div>
@@ -279,13 +279,13 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 custom={i}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="group relative p-7 lg:p-8 rounded-[20px] bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_4px_40px_rgba(108,76,241,0.08)] hover:shadow-[0_8px_60px_rgba(108,76,241,0.15)] transition-all duration-300"
+                className="group relative p-7 lg:p-8 rounded-[20px] bg-white/70 dark:bg-slate-700/50 backdrop-blur-xl border border-white/60 dark:border-slate-600/60 shadow-[0_4px_40px_rgba(108,76,241,0.08)] hover:shadow-[0_8px_60px_rgba(108,76,241,0.15)] transition-all duration-300"
               >
                 <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#6C4CF1]/10 to-[#6C4CF1]/5 flex items-center justify-center mb-5 group-hover:from-[#6C4CF1]/20 group-hover:to-[#6C4CF1]/10 transition-all">
                   <f.icon className="w-6 h-6 text-[#6C4CF1]" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -293,7 +293,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section id="how-it-works" className="py-24 lg:py-32 bg-gray-50">
+      <section id="how-it-works" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-700/50">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -305,10 +305,10 @@ export default function LandingPage() {
             <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#6C4CF1] bg-[#6C4CF1]/10 rounded-full mb-4">
               HOW IT WORKS
             </span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-slate-100 mb-4">
               Get started in seconds
             </h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+            <p className="text-lg text-gray-500 dark:text-slate-400 max-w-xl mx-auto">
               Four simple steps to skip the line.
             </p>
           </motion.div>
@@ -327,12 +327,12 @@ export default function LandingPage() {
                   custom={i}
                   className="relative flex flex-col items-center text-center"
                 >
-                  <div className="relative z-10 w-28 h-28 rounded-[20px] bg-white shadow-lg shadow-[#6C4CF1]/10 flex flex-col items-center justify-center mb-6 border border-[#6C4CF1]/10 group-hover:shadow-[#6C4CF1]/20 transition-shadow">
+                  <div className="relative z-10 w-28 h-28 rounded-[20px] bg-white dark:bg-slate-800 shadow-lg shadow-[#6C4CF1]/10 flex flex-col items-center justify-center mb-6 border border-[#6C4CF1]/10 group-hover:shadow-[#6C4CF1]/20 transition-shadow">
                     <step.icon className="w-7 h-7 text-[#6C4CF1] mb-1" />
                     <span className="text-xs font-bold text-[#6C4CF1]/60">{step.num}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-500">{step.desc}</p>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-2">{step.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">{step.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -341,7 +341,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── For Businesses ─── */}
-      <section id="businesses" className="py-24 lg:py-32 bg-white">
+      <section id="businesses" className="py-24 lg:py-32 bg-white dark:bg-slate-800">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -353,11 +353,11 @@ export default function LandingPage() {
               <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#6C4CF1] bg-[#6C4CF1]/10 rounded-full mb-4">
                 FOR BUSINESSES
               </span>
-              <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+              <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-slate-100 mb-6 leading-tight">
                 Grow your business<br />
                 <span className="text-[#6C4CF1]">with smarter queues</span>
               </h2>
-              <p className="text-lg text-gray-500 leading-relaxed mb-10 max-w-lg">
+              <p className="text-lg text-gray-500 dark:text-slate-400 leading-relaxed mb-10 max-w-lg">
                 Manage customer flow, reduce wait times, and gain valuable insights — all from one dashboard.
               </p>
               <button
@@ -378,13 +378,13 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   custom={i}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="p-6 rounded-[20px] bg-gradient-to-br from-gray-50 to-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
+                  className="p-6 rounded-[20px] bg-gradient-to-br from-gray-50 to-white dark:from-slate-700/50 dark:to-slate-800 border border-gray-100 dark:border-slate-600 shadow-sm hover:shadow-lg transition-all duration-300"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[#6C4CF1]/10 flex items-center justify-center mb-4">
                     <f.icon className="w-5 h-5 text-[#6C4CF1]" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900 mb-1.5">{f.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-1.5">{f.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -393,7 +393,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Pricing ─── */}
-      <section id="pricing" className="py-24 lg:py-32 bg-gray-50">
+      <section id="pricing" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-700/50">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -405,10 +405,10 @@ export default function LandingPage() {
             <span className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider text-[#6C4CF1] bg-[#6C4CF1]/10 rounded-full mb-4">
               PRICING
             </span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-slate-100 mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+            <p className="text-lg text-gray-500 dark:text-slate-400 max-w-xl mx-auto">
               Start free. Upgrade when you're ready.
             </p>
           </motion.div>
@@ -426,7 +426,7 @@ export default function LandingPage() {
                 className={`relative p-8 rounded-[20px] transition-all duration-300 ${
                   plan.highlight
                     ? 'bg-[#6C4CF1] text-white shadow-2xl shadow-[#6C4CF1]/30 scale-[1.03]'
-                    : 'bg-white border border-gray-100 shadow-sm hover:shadow-lg'
+                    : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 shadow-sm hover:shadow-lg'
                 }`}
               >
                 {plan.highlight && (
@@ -434,11 +434,11 @@ export default function LandingPage() {
                     MOST POPULAR
                   </span>
                 )}
-                <h3 className={`text-lg font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
-                <p className={`text-sm mb-6 ${plan.highlight ? 'text-white/70' : 'text-gray-500'}`}>{plan.desc}</p>
+                <h3 className={`text-lg font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-slate-100'}`}>{plan.name}</h3>
+                <p className={`text-sm mb-6 ${plan.highlight ? 'text-white/70' : 'text-gray-500 dark:text-slate-400'}`}>{plan.desc}</p>
                 <div className="mb-6">
-                  <span className={`text-5xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>${plan.price}</span>
-                  <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/60' : 'text-gray-400'}`}>/month</span>
+                  <span className={`text-5xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-slate-100'}`}>${plan.price}</span>
+                  <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/60' : 'text-gray-400 dark:text-slate-500'}`}>/month</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
@@ -446,7 +446,7 @@ export default function LandingPage() {
                       <svg className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-white' : 'text-[#6C4CF1]'}`} viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      <span className={`text-sm ${plan.highlight ? 'text-white/80' : 'text-gray-600'}`}>{f}</span>
+                      <span className={`text-sm ${plan.highlight ? 'text-white/80' : 'text-gray-600 dark:text-slate-400'}`}>{f}</span>
                     </li>
                   ))}
                 </ul>

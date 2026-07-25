@@ -49,20 +49,20 @@ export default function CustomerProfilePage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Profile</h1>
-        <p className="text-slate-500 mt-1 text-sm">Manage your personal information and preferences.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profile</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage your personal information and preferences.</p>
       </div>
 
       {message && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm p-4 rounded-xl mb-6">{message}</motion.div>}
       {error && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-xl mb-6">{error}</motion.div>}
 
       <form onSubmit={handleSave}>
-        <div className="bg-white rounded-[20px] border border-slate-100 p-8 card-shadow">
-          <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-100">
+        <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-8 card-shadow">
+          <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
             <Avatar name={user?.name} size="xl" />
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{user?.name}</h2>
-              <p className="text-sm text-slate-500 mt-0.5">{user?.email}</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{user?.name}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{user?.email}</p>
               <div className="flex items-center gap-1.5 mt-2">
                 <HiOutlineShieldCheck className="w-4 h-4 text-primary" />
                 <span className="text-xs font-semibold text-primary capitalize">{user?.role || 'Customer'}</span>
