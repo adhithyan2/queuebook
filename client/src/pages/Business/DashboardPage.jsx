@@ -88,6 +88,11 @@ export default function BusinessDashboardPage() {
     setAdding(false);
   };
 
+  const { queue = [], stats = {}, business } = dashboard || {};
+  const called = queue.find(q => q.status === 'called');
+  const isServing = !!called;
+  const timer = useTimer(isServing);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -96,14 +101,10 @@ export default function BusinessDashboardPage() {
     );
   }
 
-  const { queue = [], stats = {}, business } = dashboard || {};
-  const called = queue.find(q => q.status === 'called');
   const waiting = queue.filter(q => q.status === 'waiting');
   const completed = queue.filter(q => q.status === 'completed');
   const skipped = queue.filter(q => q.status === 'skipped');
   const avgServiceTime = business?.avgServiceTime || 5;
-  const isServing = !!called;
-  const timer = useTimer(isServing);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
