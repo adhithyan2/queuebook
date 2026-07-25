@@ -22,7 +22,7 @@ export default function CustomerLayout() {
           width: sidebarCollapsed ? 'calc(100% - 48px)' : 'calc(100% - 280px)',
         }}
       >
-        <Container className="py-8">
+        <Container className="py-10">
           <main className="space-y-10">
             <Outlet />
           </main>

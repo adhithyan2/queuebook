@@ -57,7 +57,7 @@ export default function CustomerBookPage() {
   if (success) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-xl mx-auto">
-        <div className="bg-white rounded-[18px] border border-slate-100 p-10 card-shadow-lg text-center">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-10 card-shadow-lg text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
             <HiOutlineCalendar className="w-8 h-8 text-emerald-600" />
           </div>
@@ -86,9 +86,9 @@ export default function CustomerBookPage() {
         <HiOutlineArrowLeft className="w-4 h-4" /> Back
       </button>
 
-      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow mb-6">
+      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow mb-6">
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
             <HiOutlineLocationMarker className="w-6 h-6 text-primary" />
           </div>
           <div>

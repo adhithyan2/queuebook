@@ -54,7 +54,7 @@ export default function CustomerQueuePage() {
 
         return (
           <motion.div key={q._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow max-w-2xl mb-6">
+            className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow max-w-2xl mb-6">
             {ahead === 1 && q.status !== 'called' && (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                 className="mb-5 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -72,7 +72,7 @@ export default function CustomerQueuePage() {
 
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center">
                   <HiOutlineUsers className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -125,7 +125,7 @@ export default function CustomerQueuePage() {
           </motion.div>
         );
       }) : (
-        <div className="bg-white rounded-[18px] border border-slate-100 p-16 text-center max-w-lg mx-auto card-shadow">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-16 text-center max-w-lg mx-auto card-shadow">
           <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
             <HiOutlineTrendingUp className="w-8 h-8 text-slate-300" />
           </div>

@@ -58,13 +58,13 @@ export default function CustomerDashboardPage() {
           {/* Left: Upcoming Appointment + Quick Actions */}
           <div className="space-y-6">
             {upcomingAppointment && (
-              <Link to="/customer/appointments" className="block bg-white rounded-[18px] border border-slate-100 p-6 card-shadow-lg card-shadow-hover transition-all">
+              <Link to="/customer/appointments" className="block bg-white rounded-[20px] border border-slate-100 p-6 card-shadow-lg card-shadow-hover transition-all">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-base font-semibold text-slate-900">Next Appointment</h2>
                   <Badge variant={upcomingAppointment.status === 'confirmed' ? 'confirmed' : 'pending'}>{upcomingAppointment.status}</Badge>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
                     <HiOutlineCalendar className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -90,8 +90,8 @@ export default function CustomerDashboardPage() {
                 { label: 'Queue', icon: HiOutlineUsers, path: '/customer/queue', color: 'bg-emerald-50 text-emerald-600' },
                 { label: 'Nearby', icon: HiOutlineLocationMarker, path: '/customer/nearby', color: 'bg-amber-50 text-amber-600' },
               ].map((action) => (
-                <Link key={action.label} to={action.path} className="bg-white rounded-[18px] border border-slate-100 p-5 card-shadow flex flex-col items-center gap-3 card-shadow-hover transition-all">
-                  <div className={`w-11 h-11 rounded-2xl ${action.color} flex items-center justify-center`}>
+                <Link key={action.label} to={action.path} className="bg-white rounded-[20px] border border-slate-100 p-5 card-shadow flex flex-col items-center gap-3 card-shadow-hover transition-all">
+                  <div className={`w-14 h-14 rounded-2xl ${action.color} flex items-center justify-center`}>
                     <action.icon className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-semibold text-slate-700">{action.label}</span>
@@ -115,9 +115,9 @@ export default function CustomerDashboardPage() {
           {nearbyBusinesses?.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {nearbyBusinesses.slice(0, 3).map((biz) => (
-                <div key={biz._id} className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow card-shadow-hover cursor-pointer transition-all">
+                <div key={biz._id} className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow card-shadow-hover cursor-pointer transition-all">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
                       <HiOutlineLocationMarker className="w-6 h-6 text-primary" />
                     </div>
                     {biz.distance && (
@@ -139,7 +139,7 @@ export default function CustomerDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-[18px] border border-slate-100 p-12 text-center card-shadow">
+            <div className="bg-white rounded-[20px] border border-slate-100 p-12 text-center card-shadow">
               <HiOutlineLocationMarker className="w-8 h-8 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-500">No businesses available nearby</p>
             </div>
@@ -149,7 +149,7 @@ export default function CustomerDashboardPage() {
         {/* Bottom Section: 2 columns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Appointments */}
-          <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+          <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Recent Appointments</h2>
               <Link to="/customer/appointments" className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">View all</Link>
@@ -178,7 +178,7 @@ export default function CustomerDashboardPage() {
           </div>
 
           {/* Notifications */}
-          <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+          <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Notifications</h2>
               {unreadCount > 0 && (

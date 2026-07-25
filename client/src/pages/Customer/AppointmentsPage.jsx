@@ -46,8 +46,8 @@ export default function CustomerAppointmentsPage() {
         {filtered.length > 0 ? filtered.map((apt, i) => (
           <motion.div key={apt._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
-            className="flex items-center gap-4 p-5 bg-white rounded-[18px] border border-slate-100 card-shadow card-shadow-hover cursor-pointer">
-            <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+            className="flex items-center gap-4 p-5 bg-white rounded-[20px] border border-slate-100 card-shadow card-shadow-hover cursor-pointer">
+            <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
               <HiOutlineCalendar className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -62,7 +62,7 @@ export default function CustomerAppointmentsPage() {
             <Badge variant={apt.status}>{apt.status}</Badge>
           </motion.div>
         )) : (
-          <div className="bg-white rounded-[18px] border border-slate-100 p-16 text-center card-shadow">
+          <div className="bg-white rounded-[20px] border border-slate-100 p-16 text-center card-shadow">
             <HiOutlineCalendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-600">No {tab.toLowerCase()} appointments</p>
           </div>

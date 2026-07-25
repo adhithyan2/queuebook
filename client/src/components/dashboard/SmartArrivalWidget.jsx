@@ -71,9 +71,9 @@ export default function SmartArrivalWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center">
             <HiOutlineSparkles className="w-6 h-6 text-primary animate-pulse" />
           </div>
           <div>
@@ -92,10 +92,10 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-slate-50 to-primary-50 rounded-[18px] border border-slate-200 p-6 card-shadow"
+      className="bg-gradient-to-br from-slate-50 to-primary-50 rounded-[20px] border border-slate-200 p-6 card-shadow"
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-2xl bg-white/80 flex items-center justify-center">
           <HiOutlineSparkles className="w-6 h-6 text-primary/60" />
         </div>
         <div>
@@ -161,11 +161,11 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${status.bg} rounded-[18px] border ${status.border} p-6 card-shadow-lg`}
+      className={`bg-gradient-to-br ${status.bg} rounded-[20px] border ${status.border} p-6 card-shadow-lg`}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-white/80 flex items-center justify-center">
             <HiOutlineSparkles className="w-6 h-6 text-primary" />
           </div>
           <div>

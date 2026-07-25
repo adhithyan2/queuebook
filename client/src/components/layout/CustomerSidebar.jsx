@@ -33,7 +33,7 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
       <Link
         to={item.path}
         onClick={() => onMobileClose?.()}
-        className={`group flex items-center gap-3 px-4 mx-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+        className={`group flex items-center gap-3 px-4 mx-3 min-h-[50px] py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
           isActive
             ? 'bg-primary-50 text-primary font-semibold'
             : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
@@ -55,19 +55,19 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
         <span className="text-lg font-bold gradient-text">QueueBook</span>
       </div>
 
-      <nav className="flex-1 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-4 flex flex-col gap-3 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink key={item.path} item={item} />
         ))}
       </nav>
 
-      <div className="py-4 border-t border-slate-100 space-y-1">
+      <div className="py-4 border-t border-slate-100 flex flex-col gap-3">
         {bottomItems.map((item) => (
           <NavLink key={item.path} item={item} />
         ))}
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 mx-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
+          className="flex items-center gap-3 px-4 mx-3 min-h-[50px] py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
         >
           <HiOutlineLogout className="w-5 h-5 flex-shrink-0" />
           <span>Logout</span>

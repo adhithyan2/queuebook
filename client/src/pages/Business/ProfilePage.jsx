@@ -83,7 +83,7 @@ export default function BusinessProfilePage() {
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
 
   const Section = ({ title, children }) => (
-    <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+    <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
       <h2 className="text-lg font-semibold text-slate-900 mb-5">{title}</h2>
       {children}
     </div>

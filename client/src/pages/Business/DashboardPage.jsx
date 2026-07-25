@@ -86,9 +86,9 @@ export default function BusinessDashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow"
+              className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow"
             >
-              <div className={`w-10 h-10 rounded-2xl ${s.bg} flex items-center justify-center mb-4`}>
+              <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-4`}>
                 <Icon className={`w-5 h-5 ${s.color}`} />
               </div>
               <p className="text-3xl font-bold text-slate-900">{s.value}</p>
@@ -100,7 +100,7 @@ export default function BusinessDashboardPage() {
       </div>
 
       {/* Today's Queue Table */}
-      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow mb-8">
+      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow mb-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-900">Today's Queue</h2>
           <span className="text-xs text-slate-400 font-medium">{queue.length} entries</span>
@@ -155,7 +155,7 @@ export default function BusinessDashboardPage() {
 
       {/* Analytics + Reviews */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-5">Queue Analytics (7 days)</h2>
           {analytics?.analytics?.length > 0 ? (
             <div className="space-y-3">
@@ -179,7 +179,7 @@ export default function BusinessDashboardPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 mb-5">Recent Reviews</h2>
           {reviews.length > 0 ? reviews.slice(0, 4).map((r) => (
             <div key={r._id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">

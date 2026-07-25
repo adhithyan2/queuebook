@@ -87,22 +87,22 @@ export default function BusinessQueuePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-[18px] border border-slate-100 p-5 card-shadow text-center">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-5 card-shadow text-center">
           <p className="text-3xl font-bold text-primary">{stats?.waiting || 0}</p>
           <p className="text-xs text-slate-500 mt-1 font-medium">Waiting</p>
         </div>
-        <div className="bg-white rounded-[18px] border border-slate-100 p-5 card-shadow text-center">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-5 card-shadow text-center">
           <p className="text-3xl font-bold text-emerald-600">{stats?.completed || 0}</p>
           <p className="text-xs text-slate-500 mt-1 font-medium">Completed</p>
         </div>
-        <div className="bg-white rounded-[18px] border border-slate-100 p-5 card-shadow text-center">
+        <div className="bg-white rounded-[20px] border border-slate-100 p-5 card-shadow text-center">
           <p className="text-3xl font-bold text-red-500">{stats?.skipped || 0}</p>
           <p className="text-xs text-slate-500 mt-1 font-medium">Skipped</p>
         </div>
       </div>
 
       {/* Active Queue */}
-      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow mb-8">
+      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow mb-8">
         <h2 className="text-lg font-semibold text-slate-900 mb-5">Active Queue</h2>
         {active.length > 0 ? (
           <div className="overflow-x-auto">
@@ -149,7 +149,7 @@ export default function BusinessQueuePage() {
       </div>
 
       {/* Completed */}
-      <div className="bg-white rounded-[18px] border border-slate-100 p-6 card-shadow">
+      <div className="bg-white rounded-[20px] border border-slate-100 p-6 card-shadow">
         <h2 className="text-lg font-semibold text-slate-900 mb-5">Completed Today</h2>
         {completed.length > 0 ? (
           <div className="overflow-x-auto">
@@ -184,7 +184,7 @@ export default function BusinessQueuePage() {
             onClick={() => setShowWalkIn(false)}>
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-[18px] p-6 w-full max-w-sm mx-4 shadow-2xl">
+              className="bg-white rounded-[20px] p-6 w-full max-w-sm mx-4 shadow-2xl">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-semibold text-slate-900">Add Walk-in</h3>
                 <button onClick={() => setShowWalkIn(false)} className="p-2 rounded-xl hover:bg-slate-100 transition-colors">
