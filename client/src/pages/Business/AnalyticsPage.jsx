@@ -40,7 +40,7 @@ export default function BusinessAnalyticsPage() {
           const Icon = s.icon;
           return (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-5 card-shadow">
+              className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-5 card-shadow">
               <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-3`}>
                 <Icon className={`w-4 h-4 ${s.color}`} />
               </div>
@@ -51,7 +51,7 @@ export default function BusinessAnalyticsPage() {
         })}
       </div>
 
-      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow">
+      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Daily Queue Volume (7 days)</h2>
         {analytics?.length > 0 ? (
           <div className="space-y-4">
@@ -60,7 +60,7 @@ export default function BusinessAnalyticsPage() {
                 <span className="text-xs text-slate-500 dark:text-slate-400 w-24 flex-shrink-0 font-medium">
                   {new Date(day._id).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                 </span>
-                <div className="flex-1 h-8 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                <div className="flex-1 h-8 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${(day.count / maxCount) * 100}%` }}
                     transition={{ duration: 0.6, delay: 0.1 }}
                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full" />

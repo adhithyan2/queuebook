@@ -57,8 +57,8 @@ export default function CustomerProfilePage() {
       {error && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-xl mb-6">{error}</motion.div>}
 
       <form onSubmit={handleSave}>
-        <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-8 card-shadow">
-          <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-8 card-shadow">
+          <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
             <Avatar name={user?.name} size="xl" />
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{user?.name}</h2>

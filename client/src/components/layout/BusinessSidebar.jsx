@@ -35,7 +35,7 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
         className={`group flex items-center gap-3 px-4 mx-3 min-h-[50px] py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
           isActive
             ? 'bg-primary-50 text-primary font-semibold'
-            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-700/50'
+            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
         }`}
       >
         <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
@@ -60,7 +60,7 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
         ))}
       </nav>
 
-      <div className="py-4 border-t border-slate-100 dark:border-slate-700 flex flex-col gap-3">
+      <div className="py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3">
         {bottomItems.map((item) => (
           <NavLink key={item.path} item={item} />
         ))}
@@ -73,8 +73,8 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
         </button>
       </div>
 
-      <div className="px-4 pb-5 pt-4 border-t border-slate-100 dark:border-slate-700">
-        <Link to="/business/profile" className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200">
+      <div className="px-4 pb-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <Link to="/business/profile" className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200">
           <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
@@ -89,7 +89,7 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
 
   return (
     <>
-      <aside className={`hidden lg:flex fixed left-0 top-[72px] w-[280px] h-[calc(100vh-72px)] bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 flex-col z-30 transition-transform duration-300 ease-in-out ${
+      <aside className={`hidden lg:flex fixed left-0 top-[72px] w-[280px] h-[calc(100vh-72px)] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-col z-30 transition-transform duration-300 ease-in-out ${
         sidebarCollapsed ? '-translate-x-full' : 'translate-x-0'
       }`}>
         {sidebarContent}
@@ -113,16 +113,16 @@ export default function BusinessSidebar({ mobileOpen, onMobileClose, sidebarColl
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 h-screen w-[280px] bg-white dark:bg-slate-800 z-50 lg:hidden shadow-2xl"
+              className="fixed left-0 top-0 h-screen w-[280px] bg-white dark:bg-slate-900 z-50 lg:hidden shadow-2xl"
             >
-              <div className="flex items-center justify-between px-6 pt-6 pb-6 border-b border-slate-100 dark:border-slate-700">
+              <div className="flex items-center justify-between px-6 pt-6 pb-6 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
                     <HiOutlinePlus className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-lg font-bold gradient-text">QueueBook</span>
                 </div>
-                <button onClick={onMobileClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition-all">
+                <button onClick={onMobileClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-all">
                   <HiOutlineX className="w-5 h-5" />
                 </button>
               </div>

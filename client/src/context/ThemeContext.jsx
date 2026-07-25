@@ -16,6 +16,8 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove('dark');
     }
+    root.classList.remove('light');
+    root.classList.add(theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 

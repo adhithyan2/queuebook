@@ -37,7 +37,7 @@ export default function BusinessReviewsPage() {
         {reviews.length > 0 ? reviews.map((r, i) => (
           <motion.div key={r._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
-            className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow">
+            className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary text-sm font-bold">
@@ -57,7 +57,7 @@ export default function BusinessReviewsPage() {
             {r.comment && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{r.comment}</p>}
           </motion.div>
         )) : (
-          <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-16 text-center card-shadow">
+          <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-16 text-center card-shadow">
             <HiOutlineStar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No reviews yet</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Reviews will appear here once customers leave feedback.</p>

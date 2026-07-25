@@ -41,10 +41,9 @@ body {
   line-height: 1.6;
 }
 
-.dark body,
-body.dark {
-  background-color: #0F172A;
-  color: #E2E8F0;
+html.dark body {
+  background-color: #0B1120;
+  color: #CBD5E1;
 }
 
 .bg-grid {
@@ -73,8 +72,8 @@ body.dark {
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(30, 41, 59, 0.5);
+  background: rgba(11, 17, 32, 0.8);
+  border: 1px solid rgba(30, 41, 59, 0.4);
 }
 
 .card-shadow {
@@ -115,7 +114,7 @@ body.dark {
 .dark .hero-gradient {
   background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(108, 76, 241, 0.25), transparent),
               radial-gradient(ellipse 50% 30% at 80% 20%, rgba(139, 92, 246, 0.15), transparent),
-              linear-gradient(180deg, #1E293B, #0F172A);
+              linear-gradient(180deg, #111827, #0B1120);
 }
 
 ::-webkit-scrollbar { width: 6px; }

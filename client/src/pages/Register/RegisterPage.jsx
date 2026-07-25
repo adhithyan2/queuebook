@@ -135,7 +135,7 @@ export default function RegisterPage() {
                 className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
                   form.role === option.value
                     ? 'border-primary bg-primary-50'
-                    : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-300'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'
                 }`}
               >
                 <p className={`text-sm font-semibold ${form.role === option.value ? 'text-primary' : 'text-slate-700 dark:text-slate-300'}`}>

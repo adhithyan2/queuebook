@@ -133,7 +133,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-800 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-900 overflow-x-hidden">
 
       {/* ─── Navbar ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
@@ -249,7 +249,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Features ─── */}
-      <section id="features" className="py-24 lg:py-32 bg-white dark:bg-slate-800">
+      <section id="features" className="py-24 lg:py-32 bg-white dark:bg-slate-900">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -279,7 +279,7 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 custom={i}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="group relative p-7 lg:p-8 rounded-[20px] bg-white/70 dark:bg-slate-700/50 backdrop-blur-xl border border-white/60 dark:border-slate-600/60 shadow-[0_4px_40px_rgba(108,76,241,0.08)] hover:shadow-[0_8px_60px_rgba(108,76,241,0.15)] transition-all duration-300"
+                className="group relative p-7 lg:p-8 rounded-[20px] bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-[0_4px_40px_rgba(108,76,241,0.08)] hover:shadow-[0_8px_60px_rgba(108,76,241,0.15)] transition-all duration-300"
               >
                 <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-[#6C4CF1]/10 to-[#6C4CF1]/5 flex items-center justify-center mb-5 group-hover:from-[#6C4CF1]/20 group-hover:to-[#6C4CF1]/10 transition-all">
                   <f.icon className="w-6 h-6 text-[#6C4CF1]" />
@@ -293,7 +293,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section id="how-it-works" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-700/50">
+      <section id="how-it-works" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -327,7 +327,7 @@ export default function LandingPage() {
                   custom={i}
                   className="relative flex flex-col items-center text-center"
                 >
-                  <div className="relative z-10 w-28 h-28 rounded-[20px] bg-white dark:bg-slate-800 shadow-lg shadow-[#6C4CF1]/10 flex flex-col items-center justify-center mb-6 border border-[#6C4CF1]/10 group-hover:shadow-[#6C4CF1]/20 transition-shadow">
+                  <div className="relative z-10 w-28 h-28 rounded-[20px] bg-white dark:bg-slate-900 shadow-lg shadow-[#6C4CF1]/10 flex flex-col items-center justify-center mb-6 border border-[#6C4CF1]/10 group-hover:shadow-[#6C4CF1]/20 transition-shadow">
                     <step.icon className="w-7 h-7 text-[#6C4CF1] mb-1" />
                     <span className="text-xs font-bold text-[#6C4CF1]/60">{step.num}</span>
                   </div>
@@ -341,7 +341,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── For Businesses ─── */}
-      <section id="businesses" className="py-24 lg:py-32 bg-white dark:bg-slate-800">
+      <section id="businesses" className="py-24 lg:py-32 bg-white dark:bg-slate-900">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -378,7 +378,7 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   custom={i}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="p-6 rounded-[20px] bg-gradient-to-br from-gray-50 to-white dark:from-slate-700/50 dark:to-slate-800 border border-gray-100 dark:border-slate-600 shadow-sm hover:shadow-lg transition-all duration-300"
+                  className="p-6 rounded-[20px] bg-gradient-to-br from-gray-50 to-white dark:from-slate-700/50 dark:to-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[#6C4CF1]/10 flex items-center justify-center mb-4">
                     <f.icon className="w-5 h-5 text-[#6C4CF1]" />
@@ -393,7 +393,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Pricing ─── */}
-      <section id="pricing" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-700/50">
+      <section id="pricing" className="py-24 lg:py-32 bg-gray-50 dark:bg-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -426,7 +426,7 @@ export default function LandingPage() {
                 className={`relative p-8 rounded-[20px] transition-all duration-300 ${
                   plan.highlight
                     ? 'bg-[#6C4CF1] text-white shadow-2xl shadow-[#6C4CF1]/30 scale-[1.03]'
-                    : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 shadow-sm hover:shadow-lg'
+                    : 'bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg'
                 }`}
               >
                 {plan.highlight && (

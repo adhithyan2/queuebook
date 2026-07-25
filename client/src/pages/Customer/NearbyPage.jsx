@@ -65,13 +65,13 @@ export default function CustomerNearbyPage() {
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input type="text" placeholder="Search nearby..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-12 pl-11 pr-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+            className="w-full h-12 pl-11 pr-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
         </div>
-        <div className="flex items-center gap-2 px-4 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl">
+        <div className="flex items-center gap-2 px-4 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
           <StatusIcon className="w-4 h-4" style={{ color: statusConfig[locationStatus].color }} />
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{statusConfig[locationStatus].text}</span>
           {locationStatus === 'denied' && (
-            <button onClick={detectLocation} className="ml-1 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+            <button onClick={detectLocation} className="ml-1 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               <HiOutlineRefresh className="w-4 h-4 text-primary" />
             </button>
           )}
@@ -87,7 +87,7 @@ export default function CustomerNearbyPage() {
           {businesses.length > 0 ? businesses.map((biz, i) => (
             <motion.div key={biz._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }} whileHover={{ y: -4 }}
-              className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-6 card-shadow card-shadow-hover cursor-pointer">
+              className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow card-shadow-hover cursor-pointer">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${categoryColors[biz.category] || '#6C4CF1'}15` }}>
                   <HiOutlineLocationMarker className="w-6 h-6" style={{ color: categoryColors[biz.category] || '#6C4CF1' }} />

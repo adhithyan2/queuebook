@@ -112,7 +112,7 @@ export default function CustomerBookPage() {
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="bg-white dark:bg-slate-800 rounded-[24px] p-10 text-center"
+          className="bg-white dark:bg-slate-900 rounded-[24px] p-10 text-center"
           style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)' }}
         >
           <motion.div
@@ -141,7 +141,7 @@ export default function CustomerBookPage() {
             <button onClick={() => navigate('/customer/queue')} className="flex-1 h-12 rounded-xl text-white font-semibold text-sm transition-all hover:shadow-lg active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}>
               View Queue
             </button>
-            <button onClick={() => navigate('/customer/nearby')} className="flex-1 h-12 rounded-xl font-semibold text-sm border border-[#E5E7EB] dark:border-slate-600 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-700 transition-all active:scale-[0.98]">
+            <button onClick={() => navigate('/customer/nearby')} className="flex-1 h-12 rounded-xl font-semibold text-sm border border-[#E5E7EB] dark:border-slate-700 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-all active:scale-[0.98]">
               Done
             </button>
           </div>
@@ -161,7 +161,7 @@ export default function CustomerBookPage() {
       {/* ─── Business Header ─── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        className="bg-white dark:bg-slate-800 rounded-[24px] p-8 mb-6"
+        className="bg-white dark:bg-slate-900 rounded-[24px] p-8 mb-6"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)' }}
       >
         <div className="flex items-center gap-5">
@@ -189,21 +189,21 @@ export default function CustomerBookPage() {
       {/* ─── Service Input ─── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-800 rounded-[24px] p-8 mb-6"
+        className="bg-white dark:bg-slate-900 rounded-[24px] p-8 mb-6"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)' }}
       >
         <h2 className="text-base font-bold text-[#111827] dark:text-slate-100 mb-4">Service</h2>
         <input
           type="text" value={service} onChange={e => setService(e.target.value)}
           placeholder="e.g. Haircut, Consultation, Checkup..."
-          className="w-full h-12 rounded-xl border border-[#E5E7EB] dark:border-slate-600 px-4 text-sm text-[#111827] dark:text-slate-200 placeholder-[#9CA3AF] dark:placeholder-slate-500 focus:outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 transition-all bg-[#F9FAFB] dark:bg-slate-700/50"
+          className="w-full h-12 rounded-xl border border-[#E5E7EB] dark:border-slate-700 px-4 text-sm text-[#111827] dark:text-slate-200 placeholder-[#9CA3AF] dark:placeholder-slate-500 focus:outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 transition-all bg-[#F9FAFB] dark:bg-slate-800/50"
         />
       </motion.div>
 
       {/* ─── Date Selector ─── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        className="bg-white dark:bg-slate-800 rounded-[24px] p-8 mb-6"
+        className="bg-white dark:bg-slate-900 rounded-[24px] p-8 mb-6"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)' }}
       >
         <h2 className="text-base font-bold text-[#111827] dark:text-slate-100 mb-5">Select Date</h2>
@@ -218,7 +218,7 @@ export default function CustomerBookPage() {
                 className={`flex flex-col items-center min-w-[68px] h-[76px] rounded-[16px] px-3 py-3 transition-all duration-200 flex-shrink-0 ${
                   selectedDate === d.date
                     ? 'text-white shadow-lg shadow-[#7C3AED]/25'
-                    : 'bg-[#F9FAFB] dark:bg-slate-700/50 text-[#6B7280] dark:text-slate-400 hover:bg-[#F3F4F6] dark:hover:bg-slate-600/50'
+                    : 'bg-[#F9FAFB] dark:bg-slate-800/50 text-[#6B7280] dark:text-slate-400 hover:bg-[#F3F4F6] dark:hover:bg-slate-600/50'
                 }`}
                 style={selectedDate === d.date ? { background: 'linear-gradient(135deg, #7C3AED, #A855F7)' } : {}}
               >
@@ -236,7 +236,7 @@ export default function CustomerBookPage() {
         {selectedDate && (
           <motion.div
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            className="bg-white dark:bg-slate-800 rounded-[24px] p-8 mb-6"
+            className="bg-white dark:bg-slate-900 rounded-[24px] p-8 mb-6"
             style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)' }}
           >
             <h2 className="text-base font-bold text-[#111827] dark:text-slate-100 mb-5">Select Time</h2>
@@ -261,7 +261,7 @@ export default function CustomerBookPage() {
                       className={`h-12 rounded-xl text-sm font-semibold transition-all duration-200 ${
                         selectedSlot === slot
                           ? 'text-white shadow-lg shadow-[#7C3AED]/25'
-                          : 'bg-[#F9FAFB] dark:bg-slate-700/50 text-[#6B7280] dark:text-slate-400 hover:bg-[#F3F4F6] dark:hover:bg-slate-600/50 hover:text-[#111827] dark:hover:text-slate-200'
+                          : 'bg-[#F9FAFB] dark:bg-slate-800/50 text-[#6B7280] dark:text-slate-400 hover:bg-[#F3F4F6] dark:hover:bg-slate-600/50 hover:text-[#111827] dark:hover:text-slate-200'
                       }`}
                       style={selectedSlot === slot ? { background: 'linear-gradient(135deg, #7C3AED, #A855F7)' } : {}}
                     >
@@ -278,7 +278,7 @@ export default function CustomerBookPage() {
       {/* ─── Choose Staff (Optional) ─── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-slate-800 rounded-[24px] p-8 mb-6"
+        className="bg-white dark:bg-slate-900 rounded-[24px] p-8 mb-6"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)' }}
       >
         <h2 className="text-base font-bold text-[#111827] dark:text-slate-100 mb-1">Choose Staff</h2>
@@ -294,7 +294,7 @@ export default function CustomerBookPage() {
               <div className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                 i === 0
                   ? 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7] text-white shadow-lg shadow-[#7C3AED]/20'
-                  : 'bg-[#F3F4F6] dark:bg-slate-700 text-[#6B7280] dark:text-slate-400'
+                  : 'bg-[#F3F4F6] dark:bg-slate-800 text-[#6B7280] dark:text-slate-400'
               }`}>
                 {i === 0 ? <HiOutlineSparkles className="w-5 h-5" /> : name.charAt(name.length - 1)}
               </div>

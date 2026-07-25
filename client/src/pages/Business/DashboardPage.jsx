@@ -86,7 +86,7 @@ export default function BusinessDashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow"
+              className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow"
             >
               <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-4`}>
                 <Icon className={`w-5 h-5 ${s.color}`} />
@@ -100,7 +100,7 @@ export default function BusinessDashboardPage() {
       </div>
 
       {/* Today's Queue Table */}
-      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow mb-8">
+      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow mb-8">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Today's Queue</h2>
           <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{queue.length} entries</span>
@@ -110,7 +110,7 @@ export default function BusinessDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-700">
+                <tr className="border-b border-slate-100 dark:border-slate-800">
                   <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Token</th>
                   <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Customer</th>
                   <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Status</th>
@@ -124,7 +124,7 @@ export default function BusinessDashboardPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className="border-b border-slate-50 dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
+                    className="border-b border-slate-50 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                   >
                     <td className="py-3.5 text-sm font-bold text-slate-800 dark:text-slate-200">Q{String(item.tokenNumber).padStart(3, '0')}</td>
                     <td className="py-3.5 text-sm text-slate-700 dark:text-slate-300">{item.user?.name || 'Unknown'}</td>
@@ -155,14 +155,14 @@ export default function BusinessDashboardPage() {
 
       {/* Analytics + Reviews */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow">
+        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-5">Queue Analytics (7 days)</h2>
           {analytics?.analytics?.length > 0 ? (
             <div className="space-y-3">
               {analytics.analytics.slice(0, 7).map((day) => (
                 <div key={day._id} className="flex items-center gap-3">
                   <span className="text-xs text-slate-500 dark:text-slate-400 w-20 flex-shrink-0 font-medium">{new Date(day._id).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                  <div className="flex-1 h-6 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="flex-1 h-6 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min((day.count / Math.max(...analytics.analytics.map(d => d.count), 1)) * 100, 100)}%` }}
@@ -179,10 +179,10 @@ export default function BusinessDashboardPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700 p-6 card-shadow">
+        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-5">Recent Reviews</h2>
           {reviews.length > 0 ? reviews.slice(0, 4).map((r) => (
-            <div key={r._id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            <div key={r._id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
               <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
                 {r.user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>

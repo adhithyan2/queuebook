@@ -23,7 +23,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[72px] z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100/80 dark:border-slate-700/80">
+    <header className="fixed top-0 left-0 right-0 h-[72px] z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100/80 dark:border-slate-800/80">
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center gap-4">
           <button
@@ -75,19 +75,19 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-14 w-60 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 z-50"
+                  className="absolute right-0 top-14 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50"
                 >
-                  <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700">
+                  <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
                     <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{user?.name}</p>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{user?.email}</p>
                   </div>
-                  <Link to="/customer/profile" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <Link to="/customer/profile" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <HiOutlineUser className="w-4 h-4" /> Profile
                   </Link>
-                  <Link to="/settings" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <Link to="/settings" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-5 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <HiOutlineCog className="w-4 h-4" /> Settings
                   </Link>
-                  <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
+                  <div className="border-t border-slate-100 dark:border-slate-800 mt-1 pt-1">
                     <button onClick={() => { setShowDropdown(false); logout(); }} className="flex items-center gap-3 px-5 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 w-full transition-colors">
                       <HiOutlineLogout className="w-4 h-4" /> Logout
                     </button>

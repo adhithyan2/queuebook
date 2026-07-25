@@ -60,10 +60,10 @@ export default function CustomerNotificationsPage() {
             transition={{ delay: i * 0.03 }}
             onClick={() => !n.read && handleMarkRead(n._id)}
             className={`flex items-start gap-4 p-5 rounded-[20px] transition-all cursor-pointer ${
-              n.read ? 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 card-shadow' : 'bg-primary-50/60 border border-primary-100'
+              n.read ? 'bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 card-shadow' : 'bg-primary-50/60 border border-primary-100'
             }`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              n.read ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500' : 'bg-primary-100 text-primary'
+              n.read ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' : 'bg-primary-100 text-primary'
             }`}>
               <HiOutlineBell className="w-5 h-5" />
             </div>
@@ -79,7 +79,7 @@ export default function CustomerNotificationsPage() {
             {!n.read && <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />}
           </motion.div>
         )) : (
-          <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-16 text-center card-shadow">
+          <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-16 text-center card-shadow">
             <HiOutlineBell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No notifications yet</p>
           </div>

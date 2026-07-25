@@ -54,7 +54,7 @@ export default function CustomerQueuePage() {
 
         return (
           <motion.div key={q._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-6 card-shadow max-w-2xl mb-6">
+            className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow max-w-2xl mb-6">
             {ahead === 1 && q.status !== 'called' && (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                 className="mb-5 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -92,7 +92,7 @@ export default function CustomerQueuePage() {
                 { label: 'Token', value: `Q${String(q.tokenNumber).padStart(3, '0')}`, color: 'text-slate-900 dark:text-slate-100' },
                 { label: 'People Ahead', value: ahead, color: 'text-amber-600' },
               ].map((item, i) => (
-                <div key={i} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 text-center">
+                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
                   <p className={`text-xl font-bold ${item.color}`}>{item.value}</p>
                 </div>
@@ -104,7 +104,7 @@ export default function CustomerQueuePage() {
                 <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Queue Progress</span>
                 <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Position {q.position || '-'}</span>
               </div>
-              <div className="h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
                   transition={{ duration: 1, ease: 'easeOut' }} className="h-full gradient-primary rounded-full" />
               </div>
@@ -125,8 +125,8 @@ export default function CustomerQueuePage() {
           </motion.div>
         );
       }) : (
-        <div className="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-100 dark:border-slate-700 p-16 text-center max-w-lg mx-auto card-shadow">
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-16 text-center max-w-lg mx-auto card-shadow">
+          <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
             <HiOutlineTrendingUp className="w-8 h-8 text-slate-300" />
           </div>
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Not in any queue</h3>
