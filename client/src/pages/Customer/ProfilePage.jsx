@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { customerAPI } from '../../services/api';
 
 const ProfilePage = () => {
-  const { user, updateUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -76,7 +76,8 @@ const ProfilePage = () => {
         ...formData,
         location,
       });
-      updateUser(response.data);
+      setUser(response.data.user);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       setMessage({ type: 'success', text: 'Profile updated successfully' });
     } catch (error) {
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile' });

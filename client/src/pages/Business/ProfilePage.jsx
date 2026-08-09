@@ -28,7 +28,9 @@ export default function ProfilePage() {
           ...prev,
           name: p.name || '', description: p.description || '', phone: p.phone || '',
           address: p.address || '', city: p.city || '', website: p.website || '',
-          category: p.category || '', services: p.services?.join(', ') || '',
+          category: p.category || '', services: Array.isArray(p.services)
+            ? p.services.map(s => (typeof s === 'string' ? s : s.name)).join(', ')
+            : '',
           openingHours: p.openingHours?.length ? p.openingHours : prev.openingHours,
         }));
       })
@@ -50,7 +52,7 @@ export default function ProfilePage() {
     try {
       await businessAPI.createOrUpdateProfile({
         ...form,
-        services: form.services.split(',').map(s => s.trim()).filter(Boolean),
+        services: form.services.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name })),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);

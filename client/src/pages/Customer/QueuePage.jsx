@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
 import { useSocket } from '../../context/SocketContext';
-import { customerAPI } from '../../services/api';
+import { queueAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 
 const QueuePage = () => {
@@ -19,8 +19,8 @@ const QueuePage = () => {
       socket.on('position-update', (data) => {
         setQueues((prev) =>
           prev.map((q) =>
-            q.id === data.queueId
-              ? { ...q, position: data.position, estimatedWait: data.estimatedWait }
+            q._id === data.queueId
+              ? { ...q, position: data.peopleAhead + 1, estimatedWaitTime: data.estimatedWaitTime }
               : q
           )
         );
@@ -34,8 +34,10 @@ const QueuePage = () => {
 
   const fetchQueues = async () => {
     try {
-      const response = await customerAPI.getMyQueue();
-      setQueues(response.data);
+      const response = await queueAPI.getMyQueue();
+      const items = response.data.queues || [];
+      setQueues(items);
+      items.forEach((q) => socket?.emit('join-queue-room', q._id));
     } catch (error) {
       console.error('Failed to fetch queues:', error);
     } finally {
@@ -92,7 +94,7 @@ const QueuePage = () => {
         <div className="space-y-4">
           {queues.map((queue) => (
             <div
-              key={queue.id}
+              key={queue._id}
               className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6"
             >
               <div className="flex items-center justify-between mb-4">
@@ -102,10 +104,10 @@ const QueuePage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      Token {queue.token}
+                      Token {queue.tokenNumber}
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {queue.businessName}
+                      {queue.business?.name}
                     </p>
                   </div>
                 </div>
@@ -116,10 +118,6 @@ const QueuePage = () => {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-500 dark:text-zinc-400">Service</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{queue.service}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
                   <span className="text-zinc-500 dark:text-zinc-400">Position</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">#{queue.position}</span>
                 </div>
@@ -127,7 +125,7 @@ const QueuePage = () => {
                   <span className="text-zinc-500 dark:text-zinc-400">Estimated Wait</span>
                   <span className="flex items-center gap-1 font-medium text-zinc-900 dark:text-zinc-100">
                     <HiOutlineClock className="w-4 h-4" />
-                    {queue.estimatedWait} min
+                    {queue.estimatedWaitTime} min
                   </span>
                 </div>
               </div>

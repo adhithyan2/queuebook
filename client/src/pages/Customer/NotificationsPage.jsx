@@ -14,7 +14,7 @@ const NotificationsPage = () => {
   const fetchNotifications = async () => {
     try {
       const response = await notificationAPI.getAll();
-      setNotifications(response.data);
+      setNotifications(response.data.notifications || []);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
@@ -26,7 +26,7 @@ const NotificationsPage = () => {
     try {
       await notificationAPI.markRead(id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
       );
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
@@ -92,8 +92,8 @@ const NotificationsPage = () => {
         <div className="space-y-2">
           {notifications.map((notification) => (
             <div
-              key={notification.id}
-              onClick={() => !notification.read && handleMarkRead(notification.id)}
+              key={notification._id}
+              onClick={() => !notification.read && handleMarkRead(notification._id)}
               className={`bg-white dark:bg-zinc-900 rounded-2xl border p-4 cursor-pointer transition-colors ${
                 notification.read
                   ? 'border-zinc-100 dark:border-zinc-800'
@@ -129,7 +129,7 @@ const NotificationsPage = () => {
                     {notification.message}
                   </p>
                   <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
-                    {notification.timeAgo}
+                    {new Date(notification.createdAt).toLocaleString()}
                   </p>
                 </div>
               </div>

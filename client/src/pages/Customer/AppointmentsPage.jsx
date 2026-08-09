@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
-import { customerAPI } from '../../services/api';
+import { appointmentAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 
 const tabs = ['Upcoming', 'Past', 'All'];
@@ -17,8 +17,8 @@ const AppointmentsPage = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await customerAPI.getAppointments();
-      setAppointments(response.data);
+      const response = await appointmentAPI.getAll();
+      setAppointments(response.data.appointments || []);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
     } finally {
@@ -27,7 +27,7 @@ const AppointmentsPage = () => {
   };
 
   const filteredAppointments = appointments.filter((apt) => {
-    if (activeTab === 'Upcoming') return apt.status === 'upcoming' || apt.status === 'confirmed';
+    if (activeTab === 'Upcoming') return apt.status === 'pending' || apt.status === 'confirmed';
     if (activeTab === 'Past') return apt.status === 'completed' || apt.status === 'cancelled';
     return true;
   });
@@ -35,11 +35,20 @@ const AppointmentsPage = () => {
   const getStatusVariant = (status) => {
     switch (status) {
       case 'confirmed': return 'success';
-      case 'upcoming': return 'primary';
+      case 'pending': return 'primary';
       case 'completed': return 'default';
       case 'cancelled': return 'danger';
       default: return 'default';
     }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   if (loading) {
@@ -99,7 +108,7 @@ const AppointmentsPage = () => {
         <div className="space-y-3">
           {filteredAppointments.map((appointment) => (
             <div
-              key={appointment.id}
+              key={appointment._id}
               className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
             >
               <div className="flex items-center justify-between">
@@ -109,7 +118,7 @@ const AppointmentsPage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {appointment.businessName}
+                      {appointment.business?.name || 'Business'}
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       {appointment.service}
@@ -124,14 +133,14 @@ const AppointmentsPage = () => {
               <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                 <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <HiOutlineCalendar className="w-3.5 h-3.5" />
-                  {appointment.date}
+                  {formatDate(appointment.date)}
                 </span>
                 <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <HiOutlineClock className="w-3.5 h-3.5" />
-                  {appointment.time}
+                  {appointment.timeSlot || '—'}
                 </span>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Token {appointment.token}
+                  Token {appointment.tokenNumber ?? '—'}
                 </span>
               </div>
             </div>

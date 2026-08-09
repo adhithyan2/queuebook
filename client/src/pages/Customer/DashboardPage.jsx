@@ -81,24 +81,24 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {dashboard.upcomingAppointment.businessName}
+                    {dashboard.upcomingAppointment.business?.name}
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    {dashboard.upcomingAppointment.service} • Token {dashboard.upcomingAppointment.token}
+                    {dashboard.upcomingAppointment.service} • Token {dashboard.upcomingAppointment.tokenNumber}
                   </p>
                   <div className="flex items-center gap-4 mt-2">
                     <span className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                       <HiOutlineClock className="w-3 h-3" />
-                      {dashboard.upcomingAppointment.time}
+                      {dashboard.upcomingAppointment.timeSlot}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                       <HiOutlineLocationMarker className="w-3 h-3" />
-                      {dashboard.upcomingAppointment.location}
+                      {dashboard.upcomingAppointment.business?.address || ''}
                     </span>
                   </div>
                 </div>
                 <Link
-                  to={`/customer/queue/${dashboard.upcomingAppointment.id}`}
+                  to="/customer/queue"
                   className="text-sm text-primary hover:text-primary/80 font-medium"
                 >
                   View Queue
@@ -151,9 +151,9 @@ const DashboardPage = () => {
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {dashboard?.nearbyServices?.slice(0, 3).map((service) => (
+              {dashboard?.nearbyBusinesses?.slice(0, 3).map((service) => (
                 <div
-                  key={service.id}
+                  key={service._id}
                   className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -170,7 +170,7 @@ const DashboardPage = () => {
                       <HiOutlineStar className="w-3 h-3 text-amber-400 fill-amber-400" />
                       <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{service.rating}</span>
                     </div>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{service.distance}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{service.address}</span>
                   </div>
                 </div>
               ))}
@@ -192,9 +192,9 @@ const DashboardPage = () => {
               </Link>
             </div>
             <div className="space-y-3">
-              {dashboard?.notifications?.slice(0, 3).map((notification) => (
+              {dashboard?.unreadNotifications?.slice(0, 3).map((notification) => (
                 <div
-                  key={notification.id}
+                  key={notification._id}
                   className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
                 >
                   <div className="flex items-start gap-3">
@@ -209,7 +209,7 @@ const DashboardPage = () => {
                         {notification.message}
                       </p>
                       <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                        {notification.timeAgo}
+                        {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
