@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { HiOutlineSearch, HiOutlineStar, HiOutlineLocationMarker, HiOutlinePhone } from 'react-icons/hi';
 import { customerAPI } from '../../services/api';
 
-const categories = ['All', 'Hospital', 'Salon', 'Restaurant', 'Office', 'Bank', 'Gym'];
+const categories = ['All', 'Hospital', 'Clinic', 'Salon', 'Restaurant', 'Office', 'Laboratory'];
 
 const NearbyPage = () => {
   const [businesses, setBusinesses] = useState([]);
@@ -18,7 +18,7 @@ const NearbyPage = () => {
   const fetchNearby = async () => {
     try {
       const response = await customerAPI.getNearby();
-      setBusinesses(response.data);
+      setBusinesses(response.data.businesses || []);
     } catch (error) {
       console.error('Failed to fetch nearby businesses:', error);
     } finally {
@@ -28,7 +28,7 @@ const NearbyPage = () => {
 
   const filteredBusinesses = businesses.filter((business) => {
     const matchesSearch = business.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || business.category === activeCategory;
+    const matchesCategory = activeCategory === 'All' || business.category?.toLowerCase() === activeCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -96,7 +96,7 @@ const NearbyPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBusinesses.map((business) => (
             <div
-              key={business.id}
+              key={business._id || business.id}
               className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 hover:border-primary/50 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
@@ -126,7 +126,9 @@ const NearbyPage = () => {
                   </span>
                 </div>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {business.distance}
+                  {business.distance
+                    ? (business.distance / 1000).toFixed(1) + ' km'
+                    : business.address || 'Distance unavailable'}
                 </span>
               </div>
 
