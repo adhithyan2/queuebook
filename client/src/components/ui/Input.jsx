@@ -1,23 +1,23 @@
 export default function Input({ label, error, icon, className = '', ...props }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {label && (
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+        <label className="block text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none">
             {icon}
           </div>
         )}
         <input
-          className={`w-full h-12 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ${icon ? 'pl-12' : ''} ${error ? 'border-red-300 focus:ring-red-500/20 focus:border-red-400' : ''} ${className}`}
+          className={`w-full h-11 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary ${icon ? 'pl-10' : ''} ${error ? 'border-red-300 focus:ring-red-500/15 focus:border-red-400' : ''} ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }

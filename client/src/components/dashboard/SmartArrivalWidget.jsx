@@ -71,17 +71,17 @@ export default function SmartArrivalWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center">
-            <HiOutlineSparkles className="w-6 h-6 text-primary animate-pulse" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <HiOutlineSparkles className="w-5 h-5 text-primary animate-pulse" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart Arrival Assistant</h3>
-            <p className="text-sm text-slate-400 dark:text-slate-500">Analyzing queue status...</p>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Smart Arrival Assistant</h3>
+            <p className="text-xs text-zinc-400">Analyzing queue status...</p>
           </div>
         </div>
-        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div className="h-full w-1/3 bg-indigo-200 rounded-full animate-pulse" />
         </div>
       </div>
@@ -92,20 +92,20 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-slate-50 to-primary-50 dark:from-slate-800 dark:to-slate-800 rounded-[20px] border border-slate-200 dark:border-slate-800 p-6 card-shadow"
+      className="bg-gradient-to-br from-zinc-50 to-primary/5 dark:from-zinc-900 dark:to-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6"
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-14 h-14 rounded-2xl bg-white/80 dark:bg-slate-800/80 flex items-center justify-center">
-          <HiOutlineSparkles className="w-6 h-6 text-primary/60" />
+        <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center">
+          <HiOutlineSparkles className="w-5 h-5 text-primary/60" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart Arrival Assistant</h3>
-          <p className="text-sm text-slate-400 dark:text-slate-500">Join a queue to get smart departure recommendations</p>
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Smart Arrival Assistant</h3>
+          <p className="text-xs text-zinc-400">Join a queue to get smart departure recommendations</p>
         </div>
       </div>
-      <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-5 text-center">
-        <HiOutlineClock className="w-8 h-8 text-slate-300 dark:text-slate-500 mx-auto mb-2" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">No active queue. Book an appointment to enable smart arrival.</p>
+      <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-5 text-center">
+        <HiOutlineClock className="w-8 h-8 text-zinc-300 dark:text-zinc-500 mx-auto mb-2" />
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">No active queue. Book an appointment to enable smart arrival.</p>
       </div>
     </motion.div>
   );
@@ -161,48 +161,48 @@ export default function SmartArrivalWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${status.bg} dark:from-slate-800 dark:to-slate-800 rounded-[20px] border ${status.border} dark:border-slate-800 p-6 card-shadow-lg`}
+      className={`bg-gradient-to-br ${status.bg} dark:from-zinc-900 dark:to-zinc-900 rounded-2xl border ${status.border} dark:border-zinc-800 p-6`}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-white/80 dark:bg-slate-800/80 flex items-center justify-center">
-            <HiOutlineSparkles className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-white/80 dark:bg-zinc-800 flex items-center justify-center">
+            <HiOutlineSparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart Arrival Assistant</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{data.businessName}</p>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Smart Arrival Assistant</h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{data.businessName}</p>
           </div>
         </div>
-        <span className={`px-3 py-1.5 rounded-xl text-xs font-bold ${status.badge}`}>
+        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${status.badge}`}>
           {status.badgeText}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Queue No.</p>
-          <p className="text-2xl font-bold text-primary">Q{String(data.queueNumber).padStart(3, '0')}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-3.5 text-center">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">Queue No.</p>
+          <p className="text-xl font-bold text-primary">Q{String(data.queueNumber).padStart(3, '0')}</p>
         </div>
-        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">People Ahead</p>
-          <p className="text-2xl font-bold text-amber-600">{data.peopleAhead}</p>
+        <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-3.5 text-center">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">People Ahead</p>
+          <p className="text-xl font-bold text-amber-600">{data.peopleAhead}</p>
         </div>
-        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Wait Time</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{data.estimatedWaitTime}m</p>
+        <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-3.5 text-center">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">Wait Time</p>
+          <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{data.estimatedWaitTime}m</p>
         </div>
-        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Travel Time</p>
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-3.5 text-center">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">Travel Time</p>
+          <p className="text-xl font-bold text-blue-600">
             {data.travelTimeMin !== null ? `${data.travelTimeMin}m` : '—'}
           </p>
         </div>
       </div>
 
       {data.leaveInMinutes !== null && (
-        <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-5 mb-6">
+        <div className="bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm rounded-xl p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Departure Countdown</span>
+            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">Departure Countdown</span>
             <StatusIcon className={`w-5 h-5 ${status.iconColor}`} />
           </div>
           <AnimatePresence mode="wait">
@@ -214,18 +214,18 @@ export default function SmartArrivalWidget() {
               className="text-center mb-4"
             >
               {data.recommendation === 'leave_now' ? (
-                <p className="text-4xl font-extrabold text-red-600 animate-pulse">GO NOW!</p>
+                <p className="text-3xl font-extrabold text-red-600 animate-pulse">GO NOW!</p>
               ) : (
-                <p className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
+                <p className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
                   {countdown ? `${countdown.m}:${String(countdown.s).padStart(2, '0')}` : `${data.leaveInMinutes}m`}
                 </p>
               )}
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 {data.recommendation === 'leave_now' ? 'Leave immediately' : 'until you should leave'}
               </p>
             </motion.div>
           </AnimatePresence>
-          <div className="h-2.5 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
+          <div className="h-2 bg-zinc-200 dark:bg-zinc-600 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${leaveProgress}%` }}
@@ -240,14 +240,14 @@ export default function SmartArrivalWidget() {
         <div className="flex items-center gap-4">
           {data.estimatedLeaveTime && (
             <div className="flex items-center gap-2">
-              <HiOutlineClock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Leave by <span className="font-semibold">{formatTime(data.estimatedLeaveTime)}</span></span>
+              <HiOutlineClock className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              <span className="text-xs text-zinc-600 dark:text-zinc-300">Leave by <span className="font-semibold">{formatTime(data.estimatedLeaveTime)}</span></span>
             </div>
           )}
           {data.estimatedServiceTime && (
             <div className="flex items-center gap-2">
-              <HiOutlineUsers className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Service ~<span className="font-semibold">{formatTime(data.estimatedServiceTime)}</span></span>
+              <HiOutlineUsers className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              <span className="text-xs text-zinc-600 dark:text-zinc-300">Service ~<span className="font-semibold">{formatTime(data.estimatedServiceTime)}</span></span>
             </div>
           )}
         </div>
@@ -263,10 +263,10 @@ export default function SmartArrivalWidget() {
       )}
 
       {hasLocation && !isGoogleMaps && (
-        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 mb-4">
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl p-3 mb-4">
           <div className="flex items-center gap-2">
-            <HiOutlineLocationMarker className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
-            <p className="text-xs text-slate-500 dark:text-slate-400">Using estimated travel time. Add Google Maps API key for live traffic data.</p>
+            <HiOutlineLocationMarker className="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Using estimated travel time. Add Google Maps API key for live traffic data.</p>
           </div>
         </div>
       )}
@@ -275,7 +275,7 @@ export default function SmartArrivalWidget() {
         href={navUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+        className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-colors"
       >
         <HiOutlineLocationMarker className="w-4 h-4" />
         {data.recommendation === 'leave_now' ? 'Navigate Now' : 'Open in Google Maps'}

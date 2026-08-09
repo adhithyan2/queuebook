@@ -1,213 +1,226 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { customerAPI } from '../../services/api';
+import { motion } from 'framer-motion';
+import { HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMarker, HiOutlineBell, HiOutlineStar, HiOutlineArrowRight, HiOutlineSearch } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
+import { customerAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 import SmartArrivalWidget from '../../components/dashboard/SmartArrivalWidget';
-import {
-  HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMarker,
-  HiOutlineBell, HiOutlineStar, HiOutlineArrowRight, HiOutlineSearch
-} from 'react-icons/hi';
 
-export default function CustomerDashboardPage() {
+const DashboardPage = () => {
   const { user } = useAuth();
-  const [data, setData] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    customerAPI.getDashboard()
-      .then(res => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetchDashboard();
   }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      const response = await customerAPI.getDashboard();
+      setDashboard(response.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
-  const { upcomingAppointment, activeQueue, queueStatus, recentAppointments, unreadNotifications, unreadCount, nearbyBusinesses } = data || {};
-
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="space-y-10">
-        {/* Welcome + Search */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}, {user?.name?.split(' ')[0] || 'there'}
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Here's what's happening with your queues today.</p>
-          </div>
-          <div className="relative w-full sm:w-auto">
-            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search services..."
-              className="w-full sm:w-72 h-12 pl-11 pr-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Top Section: 2 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left: Upcoming Appointment + Quick Actions */}
-          <div className="space-y-6">
-            {upcomingAppointment && (
-              <Link to="/customer/appointments" className="block bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow-lg card-shadow-hover transition-all">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Next Appointment</h2>
-                  <Badge variant={upcomingAppointment.status === 'confirmed' ? 'confirmed' : 'pending'}>{upcomingAppointment.status}</Badge>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                    <HiOutlineCalendar className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{upcomingAppointment.business?.name}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{upcomingAppointment.service}</p>
-                    <div className="flex items-center gap-3 mt-3 flex-wrap">
-                      <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"><HiOutlineCalendar className="w-3 h-3" /> {new Date(upcomingAppointment.date).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"><HiOutlineClock className="w-3 h-3" /> {upcomingAppointment.timeSlot}</span>
-                      {upcomingAppointment.tokenNumber && (
-                        <span className="text-xs font-bold text-primary">Q{String(upcomingAppointment.tokenNumber).padStart(3, '0')}</span>
-                      )}
-                    </div>
-                  </div>
-                  <HiOutlineArrowRight className="w-4 h-4 text-slate-300 flex-shrink-0 mt-1" />
-                </div>
-              </Link>
-            )}
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: 'Book', icon: HiOutlineCalendar, path: '/customer/nearby', color: 'bg-primary-50 text-primary' },
-                { label: 'Queue', icon: HiOutlineUsers, path: '/customer/queue', color: 'bg-emerald-50 text-emerald-600' },
-                { label: 'Nearby', icon: HiOutlineLocationMarker, path: '/customer/nearby', color: 'bg-amber-50 text-amber-600' },
-              ].map((action) => (
-                <Link key={action.label} to={action.path} className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-5 card-shadow flex flex-col items-center gap-3 card-shadow-hover transition-all">
-                  <div className={`w-14 h-14 rounded-2xl ${action.color} flex items-center justify-center`}>
-                    <action.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{action.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Right: Smart Arrival */}
-          <SmartArrivalWidget />
-        </div>
-
-        {/* Middle: Nearby Services */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nearby Services</h2>
-            <Link to="/customer/nearby" className="text-sm font-medium text-primary hover:text-primary-dark flex items-center gap-1 transition-colors">
-              View all <HiOutlineArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          {nearbyBusinesses?.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {nearbyBusinesses.slice(0, 3).map((biz) => (
-                <div key={biz._id} className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow card-shadow-hover cursor-pointer transition-all">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <HiOutlineLocationMarker className="w-6 h-6 text-primary" />
-                    </div>
-                    {biz.distance && (
-                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                        {biz.distance < 1000 ? `${Math.round(biz.distance)}m` : `${(biz.distance / 1000).toFixed(1)}km`}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">{biz.name}</h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 capitalize mb-3">{biz.category}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <HiOutlineStar className="w-3.5 h-3.5 text-amber-400 fill-current" />
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{biz.rating?.toFixed(1) || 'New'}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-primary">Book Now</span>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            {getGreeting()}, {user?.name?.split(' ')[0]}!
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Here's what's happening today
+          </p>
+        </div>
+        <div className="relative">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Search services..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary w-64"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {dashboard?.upcomingAppointment && (
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Upcoming Appointment</h2>
+                <Badge variant="primary">Today</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {dashboard.upcomingAppointment.businessName}
+                  </p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    {dashboard.upcomingAppointment.service} • Token {dashboard.upcomingAppointment.token}
+                  </p>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      <HiOutlineClock className="w-3 h-3" />
+                      {dashboard.upcomingAppointment.time}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      <HiOutlineLocationMarker className="w-3 h-3" />
+                      {dashboard.upcomingAppointment.location}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-12 text-center card-shadow">
-              <HiOutlineLocationMarker className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 dark:text-slate-400">No businesses available nearby</p>
+                <Link
+                  to={`/customer/queue/${dashboard.upcomingAppointment.id}`}
+                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                >
+                  View Queue
+                </Link>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Bottom Section: 2 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Appointments */}
-          <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Appointments</h2>
-              <Link to="/customer/appointments" className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">View all</Link>
-            </div>
-            {recentAppointments?.length > 0 ? (
-              <div className="space-y-3">
-                {recentAppointments.slice(0, 4).map((apt) => (
-                  <div key={apt._id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center flex-shrink-0 border border-slate-100 dark:border-slate-800">
-                      <HiOutlineCalendar className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{apt.business?.name}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{apt.service} &middot; {new Date(apt.date).toLocaleDateString()}</p>
-                    </div>
-                    <Badge variant={apt.status} size="sm">{apt.status}</Badge>
-                  </div>
-                ))}
+          <div className="grid grid-cols-3 gap-4">
+            <Link
+              to="/customer/book"
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 hover:border-primary/50 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                <HiOutlineCalendar className="w-5 h-5 text-primary" />
               </div>
-            ) : (
-              <div className="text-center py-10">
-                <HiOutlineCalendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500 dark:text-slate-400">No appointments yet</p>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Book</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Schedule new</p>
+            </Link>
+            <Link
+              to="/customer/queue"
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 hover:border-primary/50 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                <HiOutlineUsers className="w-5 h-5 text-primary" />
               </div>
-            )}
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Queue</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Track status</p>
+            </Link>
+            <Link
+              to="/customer/nearby"
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 hover:border-primary/50 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                <HiOutlineLocationMarker className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Nearby</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Find places</p>
+            </Link>
           </div>
 
-          {/* Notifications */}
-          <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notifications</h2>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>
-              )}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Nearby Services</h2>
+              <Link
+                to="/customer/nearby"
+                className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
+              >
+                View All <HiOutlineArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-            {unreadNotifications?.length > 0 ? (
-              <div className="space-y-3">
-                {unreadNotifications.slice(0, 4).map((n) => (
-                  <div key={n._id} className="flex items-start gap-3 p-4 rounded-xl bg-primary-50/50 border border-primary-100/50">
-                    <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {dashboard?.nearbyServices?.slice(0, 3).map((service) => (
+                <div
+                  key={service.id}
+                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <HiOutlineStar className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{service.name}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{service.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-1">
+                      <HiOutlineStar className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{service.rating}</span>
+                    </div>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{service.distance}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <SmartArrivalWidget />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Notifications</h2>
+              <Link
+                to="/customer/notifications"
+                className="text-xs text-primary hover:text-primary/80 font-medium"
+              >
+                View All
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {dashboard?.notifications?.slice(0, 3).map((notification) => (
+                <div
+                  key={notification.id}
+                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <HiOutlineBell className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{n.title}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{n.message}</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                        {notification.timeAgo}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <HiOutlineBell className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500 dark:text-slate-400">No new notifications</p>
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
     </motion.div>
   );
-}
+};
+
+export default DashboardPage;

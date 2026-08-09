@@ -1,73 +1,145 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { appointmentAPI } from '../../services/api';
-import Badge from '../../components/ui/Badge';
 import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
+import { customerAPI } from '../../services/api';
+import Badge from '../../components/ui/Badge';
 
-const tabs = ['All', 'Upcoming', 'Completed', 'Cancelled'];
+const tabs = ['Upcoming', 'Past', 'All'];
 
-export default function CustomerAppointmentsPage() {
+const AppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('All');
+  const [activeTab, setActiveTab] = useState('Upcoming');
 
   useEffect(() => {
-    appointmentAPI.getAll()
-      .then(res => setAppointments(res.data.appointments))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetchAppointments();
   }, []);
 
-  const filtered = tab === 'All' ? appointments : appointments.filter(a => a.status === tab.toLowerCase());
+  const fetchAppointments = async () => {
+    try {
+      const response = await customerAPI.getAppointments();
+      setAppointments(response.data);
+    } catch (error) {
+      console.error('Failed to fetch appointments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredAppointments = appointments.filter((apt) => {
+    if (activeTab === 'Upcoming') return apt.status === 'upcoming' || apt.status === 'confirmed';
+    if (activeTab === 'Past') return apt.status === 'completed' || apt.status === 'cancelled';
+    return true;
+  });
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'confirmed': return 'success';
+      case 'upcoming': return 'primary';
+      case 'completed': return 'default';
+      case 'cancelled': return 'danger';
+      default: return 'default';
+    }
+  };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Appointments</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage your appointments and bookings.</p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <div>
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+          Appointments
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          Manage your upcoming and past appointments
+        </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-              tab === t ? 'bg-primary text-white shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary/30 hover:text-primary'
-            }`}>
-            {t}
+      <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
+              activeTab === tab
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+            }`}
+          >
+            {tab}
           </button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {filtered.length > 0 ? filtered.map((apt, i) => (
-          <motion.div key={apt._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 card-shadow card-shadow-hover cursor-pointer">
-            <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-              <HiOutlineCalendar className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{apt.business?.name}</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{apt.service}</p>
-              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"><HiOutlineCalendar className="w-3 h-3" /> {new Date(apt.date).toLocaleDateString()}</span>
-                <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"><HiOutlineClock className="w-3 h-3" /> {apt.timeSlot}</span>
-                {apt.tokenNumber && <span className="text-xs font-bold text-primary">Q{String(apt.tokenNumber).padStart(3, '0')}</span>}
+      {filteredAppointments.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-12 text-center">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <HiOutlineCalendar className="w-6 h-6 text-primary" />
+          </div>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            No {activeTab !== 'All' ? activeTab : ''} Appointments
+          </h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            {activeTab === 'Upcoming'
+              ? 'Book an appointment to get started'
+              : 'Your past appointments will appear here'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredAppointments.map((appointment) => (
+            <div
+              key={appointment.id}
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <HiOutlineCalendar className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      {appointment.businessName}
+                    </p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {appointment.service}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant={getStatusVariant(appointment.status)}>
+                  {appointment.status}
+                </Badge>
+              </div>
+
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <HiOutlineCalendar className="w-3.5 h-3.5" />
+                  {appointment.date}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <HiOutlineClock className="w-3.5 h-3.5" />
+                  {appointment.time}
+                </span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Token {appointment.token}
+                </span>
               </div>
             </div>
-            <Badge variant={apt.status}>{apt.status}</Badge>
-          </motion.div>
-        )) : (
-          <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-16 text-center card-shadow">
-            <HiOutlineCalendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No {tab.toLowerCase()} appointments</p>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
-}
+};
+
+export default AppointmentsPage;

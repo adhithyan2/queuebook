@@ -1,141 +1,168 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { queueAPI } from '../../services/api';
-import { useSocket } from '../../context/SocketContext';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
+import { useSocket } from '../../context/SocketContext';
+import { customerAPI } from '../../services/api';
+import Badge from '../../components/ui/Badge';
 
-export default function CustomerQueuePage() {
-  const socket = useSocket();
+const QueuePage = () => {
   const [queues, setQueues] = useState([]);
   const [loading, setLoading] = useState(true);
+  const socket = useSocket();
 
   useEffect(() => {
-    queueAPI.getMyQueue()
-      .then(res => {
-        const active = res.data.queues?.filter(q => q.status === 'waiting' || q.status === 'called') || [];
-        setQueues(active);
-        active.forEach(q => { if (socket) socket.emit('join-queue-room', q._id); });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [socket]);
+    fetchQueues();
+  }, []);
 
   useEffect(() => {
-    if (!socket) return;
-    const handlePositionUpdate = (data) => {
-      setQueues(prev => prev.map(q => {
-        if (q._id === data.queueId) {
-          const ahead = data.peopleAhead;
-          return { ...q, position: data.peopleAhead + 1, estimatedWaitTime: ahead * 5 };
-        }
-        return q;
-      }));
-    };
-    socket.on('position-update', handlePositionUpdate);
-    return () => socket.off('position-update', handlePositionUpdate);
+    if (socket) {
+      socket.on('position-update', (data) => {
+        setQueues((prev) =>
+          prev.map((q) =>
+            q.id === data.queueId
+              ? { ...q, position: data.position, estimatedWait: data.estimatedWait }
+              : q
+          )
+        );
+      });
+
+      return () => {
+        socket.off('position-update');
+      };
+    }
   }, [socket]);
+
+  const fetchQueues = async () => {
+    try {
+      const response = await customerAPI.getMyQueue();
+      setQueues(response.data);
+    } catch (error) {
+      console.error('Failed to fetch queues:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (position) => {
+    if (position === 1) return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10';
+    if (position <= 3) return 'text-amber-600 bg-amber-50 dark:bg-amber-500/10';
+    return 'text-zinc-600 bg-zinc-50 dark:bg-zinc-500/10';
+  };
+
+  const getStatusText = (position) => {
+    if (position === 1) return "You're next!";
+    if (position === 2) return '1 person ahead';
+    return `${position - 1} people ahead`;
+  };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My Queue</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Track your active queue positions in real-time.</p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <div>
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+          My Queue
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          Track your queue status in real-time
+        </p>
       </div>
 
-      {queues.length > 0 ? queues.map((q) => {
-        const ahead = q.peopleAhead ?? Math.max(0, (q.position || 1) - 1);
-        const wait = q.estimatedWaitTime ?? ahead * 5;
-        const progress = q.position > 0 ? Math.min((1 / q.position) * 100, 95) : 0;
-
-        return (
-          <motion.div key={q._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-6 card-shadow max-w-2xl mb-6">
-            {ahead === 1 && q.status !== 'called' && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                className="mb-5 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <HiOutlineBell className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <p className="text-sm font-semibold text-amber-700">You're almost there! Only 1 person ahead.</p>
-              </motion.div>
-            )}
-            {ahead === 0 && q.status !== 'called' && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                className="mb-5 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <HiOutlineBell className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                <p className="text-sm font-semibold text-emerald-700">You're next! Be ready to be called.</p>
-              </motion.div>
-            )}
-
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center">
-                  <HiOutlineUsers className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{q.business?.name || 'Business'}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Token Q{String(q.tokenNumber).padStart(3, '0')}</p>
-                </div>
-              </div>
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {q.status === 'called' ? 'Called' : 'In Queue'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              {[
-                { label: 'Position', value: `${q.position || '-'}`, color: 'text-primary' },
-                { label: 'Token', value: `Q${String(q.tokenNumber).padStart(3, '0')}`, color: 'text-slate-900 dark:text-slate-100' },
-                { label: 'People Ahead', value: ahead, color: 'text-amber-600' },
-              ].map((item, i) => (
-                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{item.label}</p>
-                  <p className={`text-xl font-bold ${item.color}`}>{item.value}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Queue Progress</span>
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Position {q.position || '-'}</span>
-              </div>
-              <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }} className="h-full gradient-primary rounded-full" />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-5 bg-primary-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <HiOutlineClock className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-xs text-primary font-medium">Estimated Wait</p>
-                  <p className="text-lg font-bold text-primary">~{wait} min</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all">
-                Notify Me
-              </button>
-            </div>
-          </motion.div>
-        );
-      }) : (
-        <div className="bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 p-16 text-center max-w-lg mx-auto card-shadow">
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-            <HiOutlineTrendingUp className="w-8 h-8 text-slate-300" />
+      {queues.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-12 text-center">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <HiOutlineUsers className="w-6 h-6 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Not in any queue</h3>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">Book an appointment to join a queue.</p>
-          <Link to="/customer/nearby" className="inline-block px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-all">
-            Find Services
-          </Link>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">No Active Queues</h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            You're not in any queue right now
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {queues.map((queue) => (
+            <div
+              key={queue.id}
+              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <HiOutlineUsers className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      Token {queue.token}
+                    </p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {queue.businessName}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant={queue.status === 'waiting' ? 'warning' : 'success'}>
+                  {queue.status}
+                </Badge>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-500 dark:text-zinc-400">Service</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{queue.service}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-500 dark:text-zinc-400">Position</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">#{queue.position}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-500 dark:text-zinc-400">Estimated Wait</span>
+                  <span className="flex items-center gap-1 font-medium text-zinc-900 dark:text-zinc-100">
+                    <HiOutlineClock className="w-4 h-4" />
+                    {queue.estimatedWait} min
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-zinc-500 dark:text-zinc-400">Progress</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {Math.max(0, 100 - (queue.position * 20))}%
+                  </span>
+                </div>
+                <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(0, 100 - (queue.position * 20))}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className={`mt-4 p-3 rounded-xl ${getStatusColor(queue.position)}`}>
+                <div className="flex items-center gap-2">
+                  {queue.position <= 2 ? (
+                    <HiOutlineBell className="w-4 h-4" />
+                  ) : (
+                    <HiOutlineTrendingUp className="w-4 h-4" />
+                  )}
+                  <span className="text-xs font-medium">{getStatusText(queue.position)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </motion.div>
   );
-}
+};
+
+export default QueuePage;

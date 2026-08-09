@@ -10,20 +10,17 @@ export default function BusinessLayout() {
   const toggleSidebar = () => setSidebarCollapsed(prev => !prev);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120]">
+    <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b]">
       <BusinessSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} sidebarCollapsed={sidebarCollapsed} />
-      <Navbar onMenuClick={() => setMobileOpen(true)} onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
-      <div
-        className="transition-[margin] duration-300 ease-in-out"
+      <Navbar onMenuClick={() => setMobileOpen(true)} onToggleSidebar={toggleSidebar} />
+      <div className="transition-[margin] duration-300 ease-in-out"
         style={{
-          paddingTop: '96px',
-          marginLeft: sidebarCollapsed ? '24px' : '280px',
-          marginRight: sidebarCollapsed ? '24px' : '0px',
-          width: sidebarCollapsed ? 'calc(100% - 48px)' : 'calc(100% - 280px)',
-        }}
-      >
-        <Container className="py-10">
-          <main className="space-y-10">
+          paddingTop: '80px',
+          marginLeft: sidebarCollapsed ? '0px' : '240px',
+          width: sidebarCollapsed ? '100%' : 'calc(100% - 240px)',
+        }}>
+        <Container className="py-8">
+          <main className="space-y-8">
             <Outlet />
           </main>
         </Container>

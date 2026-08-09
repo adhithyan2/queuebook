@@ -4,205 +4,192 @@ import { businessAPI } from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import { HiOutlineUsers, HiOutlineCheck, HiOutlineXCircle, HiOutlinePlus, HiOutlineX } from 'react-icons/hi';
+import {
+  HiOutlineUsers, HiOutlineCheck, HiOutlineXMark, HiOutlinePlus,
+  HiOutlineClock, HiOutlinePlay, HiOutlinePause, HiOutlineArrowPath,
+  HiOutlineMegaphone,
+} from 'react-icons/hi2';
 
-export default function BusinessQueuePage() {
+const statusColors = {
+  waiting: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+  called: 'bg-primary/10 text-primary',
+  completed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
+  skipped: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+};
+
+export default function QueuePage() {
   const socket = useSocket();
-  const [queue, setQueue] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showWalkIn, setShowWalkIn] = useState(false);
   const [walkInName, setWalkInName] = useState('');
   const [adding, setAdding] = useState(false);
 
-  const loadQueue = () => {
-    businessAPI.getDashboard()
-      .then(res => {
-        setQueue(res.data.queue);
-        setStats(res.data.stats);
-        if (socket && res.data.business?._id) {
-          socket.emit('join-business-room', res.data.business._id);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const loadDashboard = async () => {
+    try {
+      const res = await businessAPI.getDashboard();
+      setDashboard(res.data);
+    } catch {} finally { setLoading(false); }
   };
 
-  useEffect(() => { loadQueue(); }, [socket]);
+  useEffect(() => { loadDashboard(); }, []);
 
   useEffect(() => {
-    if (!socket) return;
-    const handleRefresh = (updatedQueue) => {
-      setQueue(updatedQueue);
-      businessAPI.getDashboard().then(res => setStats(res.data.stats)).catch(() => {});
-    };
-    socket.on('queue-refresh', handleRefresh);
-    socket.on('booking-notification', () => loadQueue());
-    return () => {
-      socket.off('queue-refresh', handleRefresh);
-      socket.off('booking-notification');
-    };
-  }, [socket]);
+    if (!socket || !dashboard?.business?._id) return;
+    socket.emit('join-business-room', dashboard.business._id);
+    const h = () => loadDashboard();
+    socket.on('queue-refresh', h);
+    return () => socket.off('queue-refresh', h);
+  }, [socket, dashboard?.business?._id]);
 
-  const handleCallNext = async () => {
-    try { await businessAPI.callNext(); loadQueue(); } catch (err) { alert(err.response?.data?.message || 'No one in queue'); }
-  };
-  const handleSkip = async (id) => { try { await businessAPI.skipCustomer(id); loadQueue(); } catch {} };
-  const handleComplete = async (id) => { try { await businessAPI.completeAppointment(id); loadQueue(); } catch {} };
+  const refresh = async () => { try { const r = await businessAPI.getDashboard(); setDashboard(r.data); } catch {} };
+  const handleCallNext = async () => { try { await businessAPI.callNext(); await refresh(); } catch (e) { alert(e.response?.data?.message || 'No one in queue'); } };
+  const handleSkip = async (id) => { try { await businessAPI.skipCustomer(id); await refresh(); } catch {} };
+  const handleComplete = async (id) => { try { await businessAPI.completeAppointment(id); await refresh(); } catch {} };
   const handleAddWalkIn = async () => {
-    setAdding(true);
-    try { await businessAPI.addWalkIn({ name: walkInName }); setWalkInName(''); setShowWalkIn(false); loadQueue(); } catch {}
+    if (!walkInName.trim()) return; setAdding(true);
+    try { await businessAPI.addWalkIn({ name: walkInName.trim() }); setWalkInName(''); setShowWalkIn(false); await refresh(); } catch {}
     setAdding(false);
   };
 
-  function customerName(item) {
-    if (item.walkInName) return item.walkInName;
-    return item.user?.name || 'Unknown';
-  }
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
-  }
-
+  const { queue = [] } = dashboard || {};
+  const called = queue.find(q => q.status === 'called');
   const waiting = queue.filter(q => q.status === 'waiting');
-  const active = queue.filter(q => q.status === 'waiting' || q.status === 'called');
-  const completed = queue.filter(q => q.status === 'completed' || q.status === 'skipped');
+  const completed = queue.filter(q => q.status === 'completed');
+  const skipped = queue.filter(q => q.status === 'skipped');
+  const allDone = [...completed, ...skipped];
+
+  if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Queue Management</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{stats?.waiting || 0} waiting &middot; {stats?.total || 0} total today</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" size="md" onClick={() => setShowWalkIn(true)}>
-            <HiOutlinePlus className="w-4 h-4" /> Walk-in
-          </Button>
-          <Button variant="gradient" onClick={handleCallNext} disabled={waiting.length === 0}>
-            Call Next
-          </Button>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Queue Management</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={refresh} className="gap-1.5"><HiOutlineArrowPath className="w-3.5 h-3.5" /> Refresh</Button>
+          <Button size="sm" onClick={() => setShowWalkIn(true)} className="gap-1.5"><HiOutlinePlus className="w-3.5 h-3.5" /> Walk-in</Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-5 card-shadow text-center">
-          <p className="text-3xl font-bold text-primary">{stats?.waiting || 0}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Waiting</p>
-        </div>
-        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-5 card-shadow text-center">
-          <p className="text-3xl font-bold text-emerald-600">{stats?.completed || 0}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Completed</p>
-        </div>
-        <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-5 card-shadow text-center">
-          <p className="text-3xl font-bold text-red-500">{stats?.skipped || 0}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Skipped</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Currently Serving', value: called ? 1 : 0, icon: HiOutlineMegaphone, color: 'text-primary', bg: 'bg-primary/10' },
+          { label: 'Waiting', value: waiting.length, icon: HiOutlineClock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+          { label: 'Completed', value: completed.length, icon: HiOutlineCheck, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+          { label: 'Skipped', value: skipped.length, icon: HiOutlineXMark, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10' },
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>
+                <s.icon className={`w-4 h-4 ${s.color}`} />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{s.value}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{s.label}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Active Queue */}
-      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow mb-8">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-5">Active Queue</h2>
-        {active.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800">
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Token</th>
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Customer</th>
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Status</th>
-                  <th className="text-right text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {active.map((item, i) => (
-                  <motion.tr key={item._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b border-slate-50 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 text-sm font-bold text-slate-800 dark:text-slate-200">Q{String(item.tokenNumber).padStart(3, '0')}</td>
-                    <td className="py-3.5 text-sm text-slate-700 dark:text-slate-300">{customerName(item)}</td>
-                    <td className="py-3.5"><Badge variant={item.status === 'called' ? 'confirmed' : 'pending'}>{item.status}</Badge></td>
-                    <td className="py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {item.status === 'waiting' && (
-                          <>
-                            <button onClick={() => handleComplete(item._id)} className="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all">Done</button>
-                            <button onClick={() => handleSkip(item._id)} className="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-all">Skip</button>
-                          </>
-                        )}
-                        {item.status === 'called' && (
-                          <button onClick={() => handleComplete(item._id)} className="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all">Complete</button>
-                        )}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+      {called && (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-primary/20 p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+              <h2 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Now Serving</h2>
+            </div>
+            <Badge variant="primary">Q{String(called.tokenNumber).padStart(3, '0')}</Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{called.user?.name || called.walkInName}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{called.service || 'Walk-in'} {called.timeSlot ? `· ${called.timeSlot}` : ''}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="success" size="sm" onClick={() => handleComplete(called._id)} className="gap-1.5"><HiOutlineCheck className="w-3.5 h-3.5" /> Done</Button>
+              <Button variant="danger" size="sm" onClick={() => handleSkip(called._id)} className="gap-1.5"><HiOutlineXMark className="w-3.5 h-3.5" /> Skip</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Waiting Queue</h2>
+          <span className="text-[11px] font-semibold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full">{waiting.length}</span>
+        </div>
+        {waiting.length > 0 ? (
+          <div className="space-y-2">
+            {waiting.map((item, i) => (
+              <motion.div key={item._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">
+                  {(item.user?.name || item.walkInName || '?').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{item.user?.name || item.walkInName}</p>
+                  <p className="text-[11px] text-zinc-400">{item.service || 'Walk-in'} {item.timeSlot ? `· ${item.timeSlot}` : ''}</p>
+                </div>
+                <Badge variant="warning">Q{String(item.tokenNumber).padStart(3, '0')}</Badge>
+                <div className="flex gap-1.5">
+                  <button onClick={() => handleComplete(item._id)} className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors">Done</button>
+                  <button onClick={() => handleSkip(item._id)} className="px-2.5 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">Skip</button>
+                </div>
+              </motion.div>
+            ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <HiOutlineUsers className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Queue is empty</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">No customers waiting at the moment.</p>
+          <div className="text-center py-10">
+            <HiOutlineUsers className="w-6 h-6 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">No one waiting</p>
           </div>
         )}
       </div>
 
-      {/* Completed */}
-      <div className="bg-white rounded-[20px] border border-slate-100 dark:bg-slate-900 dark:border-slate-800 p-6 card-shadow">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-5">Completed Today</h2>
-        {completed.length > 0 ? (
+      {allDone.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">History</h2>
+            <span className="text-[11px] font-semibold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full">{allDone.length}</span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800">
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Token</th>
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Customer</th>
-                  <th className="text-left text-xs font-medium text-slate-400 dark:text-slate-500 pb-3 uppercase tracking-wider">Status</th>
+                <tr className="border-b border-zinc-100 dark:border-zinc-800">
+                  {['Token', 'Customer', 'Status', 'Service'].map(h => (
+                    <th key={h} className="text-left text-[10px] font-bold text-zinc-400 dark:text-zinc-500 pb-3 uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {completed.map((item) => (
-                  <tr key={item._id} className="border-b border-slate-50 dark:border-slate-800/50 last:border-0">
-                    <td className="py-3 text-sm font-bold text-slate-800 dark:text-slate-200">Q{String(item.tokenNumber).padStart(3, '0')}</td>
-                    <td className="py-3 text-sm text-slate-700 dark:text-slate-300">{customerName(item)}</td>
-                    <td className="py-3"><Badge variant={item.status === 'completed' ? 'active' : 'cancelled'}>{item.status}</Badge></td>
+                {allDone.map(item => (
+                  <tr key={item._id} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0">
+                    <td className="py-2.5 text-sm font-mono text-zinc-600 dark:text-zinc-400">Q{String(item.tokenNumber).padStart(3, '0')}</td>
+                    <td className="py-2.5 text-sm text-zinc-700 dark:text-zinc-300">{item.user?.name || item.walkInName}</td>
+                    <td className="py-2.5"><Badge variant={item.status === 'completed' ? 'success' : 'danger'}>{item.status}</Badge></td>
+                    <td className="py-2.5 text-sm text-zinc-500 dark:text-zinc-400">{item.service || '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        ) : (
-          <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">No completed entries yet</p>
-        )}
-      </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showWalkIn && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-            onClick={() => setShowWalkIn(false)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white rounded-[20px] dark:bg-slate-900 p-6 w-full max-w-sm mx-4 shadow-2xl">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add Walk-in</h3>
-                <button onClick={() => setShowWalkIn(false)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                  <HiOutlineX className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                </button>
-              </div>
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Customer Name</label>
-                <input type="text" value={walkInName} onChange={e => setWalkInName(e.target.value)}
-                  placeholder="Walk-in"
-                  className="w-full h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  onKeyDown={e => { if (e.key === 'Enter') handleAddWalkIn(); }} autoFocus />
-              </div>
-              <div className="flex gap-3">
-                <Button variant="secondary" fullWidth onClick={() => setShowWalkIn(false)}>Cancel</Button>
-                <Button variant="gradient" fullWidth onClick={handleAddWalkIn} disabled={adding}>
-                  {adding ? 'Adding...' : 'Add to Queue'}
-                </Button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowWalkIn(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-sm border border-zinc-100 dark:border-zinc-800 shadow-xl">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-4">Add Walk-in Customer</h3>
+              <input type="text" value={walkInName} onChange={e => setWalkInName(e.target.value)} placeholder="Customer name"
+                className="w-full h-11 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                onKeyDown={e => { if (e.key === 'Enter') handleAddWalkIn(); }} autoFocus />
+              <div className="flex gap-2 mt-4">
+                <Button variant="outline" className="flex-1" onClick={() => setShowWalkIn(false)}>Cancel</Button>
+                <Button className="flex-1" onClick={handleAddWalkIn} disabled={adding || !walkInName.trim()}>{adding ? 'Adding...' : 'Add'}</Button>
               </div>
             </motion.div>
           </motion.div>

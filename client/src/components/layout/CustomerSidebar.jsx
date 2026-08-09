@@ -28,60 +28,49 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
   const NavLink = ({ item }) => {
     const isActive = location.pathname === item.path;
     const Icon = item.icon;
-
     return (
-      <Link
-        to={item.path}
-        onClick={() => onMobileClose?.()}
-        className={`group flex items-center gap-3 px-4 mx-3 min-h-[50px] py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+      <Link to={item.path} onClick={() => onMobileClose?.()}
+        className={`group flex items-center gap-3 px-3 mx-3 h-10 rounded-xl text-[13px] font-medium transition-all duration-150 ${
           isActive
-            ? 'bg-primary-50 text-primary font-semibold'
-            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
-        }`}
-      >
-        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
+            ? 'bg-primary/10 text-primary font-semibold'
+            : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800/60'
+        }`}>
+        <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
         <span className="truncate">{item.label}</span>
-        {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
       </Link>
     );
   };
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-6 pt-7 pb-6 flex-shrink-0">
-        <div className="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-          <HiOutlinePlus className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-2.5 px-5 pt-6 pb-5 flex-shrink-0">
+        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+          <HiOutlinePlus className="w-4 h-4 text-white" />
         </div>
-        <span className="text-lg font-bold gradient-text">QueueBook</span>
+        <span className="text-base font-bold gradient-text tracking-tight">QueueBook</span>
       </div>
 
-      <nav className="flex-1 py-4 flex flex-col gap-3 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink key={item.path} item={item} />
-        ))}
+      <nav className="flex-1 py-3 flex flex-col gap-0.5 overflow-y-auto">
+        {navItems.map((item) => <NavLink key={item.path} item={item} />)}
       </nav>
 
-      <div className="py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3">
-        {bottomItems.map((item) => (
-          <NavLink key={item.path} item={item} />
-        ))}
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 px-4 mx-3 min-h-[50px] py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 dark:text-slate-500 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-all duration-200 w-full"
-        >
-          <HiOutlineLogout className="w-5 h-5 flex-shrink-0" />
+      <div className="py-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-0.5">
+        {bottomItems.map((item) => <NavLink key={item.path} item={item} />)}
+        <button onClick={logout}
+          className="flex items-center gap-3 px-3 mx-3 h-10 rounded-xl text-[13px] font-medium text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:text-zinc-400 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-colors w-full">
+          <HiOutlineLogout className="w-[18px] h-[18px] flex-shrink-0" />
           <span>Logout</span>
         </button>
       </div>
 
-      <div className="px-4 pb-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <Link to="/customer/profile" className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200">
-          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+      <div className="px-3 pb-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <Link to="/customer/profile" className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors">
+          <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{user?.name || 'User'}</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user?.email || ''}</p>
+            <p className="text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 truncate">{user?.name || 'User'}</p>
+            <p className="text-[11px] text-zinc-400 truncate">{user?.email || ''}</p>
           </div>
         </Link>
       </div>
@@ -90,7 +79,7 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
 
   return (
     <>
-      <aside className={`hidden lg:flex fixed left-0 top-[72px] w-[280px] h-[calc(100vh-72px)] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-col z-30 transition-transform duration-300 ease-in-out ${
+      <aside className={`hidden lg:flex fixed left-0 top-16 w-[240px] h-[calc(100vh-4rem)] bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800 flex-col z-30 transition-transform duration-300 ease-in-out ${
         sidebarCollapsed ? '-translate-x-full' : 'translate-x-0'
       }`}>
         {sidebarContent}
@@ -99,31 +88,19 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div
-              key="mobile-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden"
-              onClick={onMobileClose}
-            />
-            <motion.aside
-              key="mobile-sidebar"
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
+            <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden" onClick={onMobileClose} />
+            <motion.aside key="sidebar" initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 h-screen w-[280px] bg-white dark:bg-slate-900 z-50 lg:hidden shadow-2xl"
-            >
-              <div className="flex items-center justify-between px-6 pt-6 pb-6 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                    <HiOutlinePlus className="w-5 h-5 text-white" />
+              className="fixed left-0 top-0 h-screen w-[260px] bg-white dark:bg-zinc-950 z-50 lg:hidden shadow-2xl">
+              <div className="flex items-center justify-between px-5 py-5 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center">
+                    <HiOutlinePlus className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-lg font-bold gradient-text">QueueBook</span>
+                  <span className="text-base font-bold gradient-text tracking-tight">QueueBook</span>
                 </div>
-                <button onClick={onMobileClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-all">
+                <button onClick={onMobileClose} className="p-2 rounded-xl text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                   <HiOutlineX className="w-5 h-5" />
                 </button>
               </div>
