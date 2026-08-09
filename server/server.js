@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const compression = require('compression');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -28,6 +29,7 @@ app.use(cors({
   origin: CLIENT_URL,
   credentials: true,
 }));
+app.use(compression());
 app.use(express.json());
 
 app.use('/api/customer', require('./routes/customer'));

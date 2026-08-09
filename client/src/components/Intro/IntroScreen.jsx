@@ -42,7 +42,12 @@ export default function IntroScreen({ onComplete }) {
     video.muted = true;
     video.play().catch(() => finishIntro());
 
+    const watchdog = setTimeout(() => {
+      if (!completedRef.current) finishIntro();
+    }, 8000);
+
     return () => {
+      clearTimeout(watchdog);
       video.removeEventListener('ended', handleEnded);
       video.removeEventListener('error', handleError);
     };
