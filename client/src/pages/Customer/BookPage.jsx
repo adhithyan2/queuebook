@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineCalendar, HiOutlineClock, HiOutlineCheck } from 'react-icons/hi';
-import { customerAPI } from '../../services/api';
+import { customerAPI, appointmentAPI } from '../../services/api';
 
 const BookPage = () => {
   const { businessId } = useParams();
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [service, setService] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [booking, setBooking] = useState(false);
@@ -20,8 +21,10 @@ const BookPage = () => {
 
   const fetchBusiness = async () => {
     try {
-      const response = await customerAPI.getBusiness(businessId);
-      setBusiness(response.data);
+      const response = await customerAPI.getNearby({});
+      const biz = response.data.businesses?.find((b) => b._id === businessId);
+      setBusiness(biz || null);
+      setService(biz?.services?.[0]?.name || 'General Service');
       const today = new Date();
       setSelectedDate(today.toISOString().split('T')[0]);
     } catch (error) {
@@ -53,8 +56,8 @@ const BookPage = () => {
   };
 
   const handleBook = async () => {
-    if (!selectedDate || !selectedTime) {
-      setMessage({ type: 'error', text: 'Please select both date and time' });
+    if (!service || !selectedDate || !selectedTime) {
+      setMessage({ type: 'error', text: 'Please select a service, date and time' });
       return;
     }
 
@@ -62,10 +65,11 @@ const BookPage = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      await customerAPI.bookAppointment({
-        businessId,
+      await appointmentAPI.create({
+        business: businessId,
+        service,
         date: selectedDate,
-        time: selectedTime,
+        timeSlot: selectedTime,
       });
       setMessage({ type: 'success', text: 'Appointment booked successfully!' });
       setTimeout(() => navigate('/customer/appointments'), 2000);
@@ -84,6 +88,21 @@ const BookPage = () => {
     );
   }
 
+  if (!business) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-12 text-center">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Business Not Found</h3>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">This business is no longer available</p>
+        <button
+          onClick={() => navigate('/customer/nearby')}
+          className="mt-4 px-4 py-2 text-xs font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+        >
+          Back to Nearby
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -98,6 +117,30 @@ const BookPage = () => {
           {business?.name}
         </p>
       </div>
+
+      {business.services?.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Select Service</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {business.services.map((s) => (
+              <button
+                key={s.name}
+                onClick={() => setService(s.name)}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all ${
+                  service === s.name
+                    ? 'bg-primary/10 border border-primary text-zinc-900 dark:text-zinc-100'
+                    : 'bg-zinc-50 dark:bg-zinc-800 border border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                }`}
+              >
+                <span className="text-sm font-medium">{s.name}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {s.duration} min{s.price ? ` · $${s.price}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -158,6 +201,10 @@ const BookPage = () => {
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Business</span>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">{business?.name}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Service</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">{service}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Date</span>

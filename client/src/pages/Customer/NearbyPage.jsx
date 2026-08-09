@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineSearch, HiOutlineStar, HiOutlineLocationMarker, HiOutlinePhone } from 'react-icons/hi';
 import { customerAPI } from '../../services/api';
@@ -6,6 +7,7 @@ import { customerAPI } from '../../services/api';
 const categories = ['All', 'Hospital', 'Clinic', 'Salon', 'Restaurant', 'Office', 'Laboratory'];
 
 const NearbyPage = () => {
+  const navigate = useNavigate();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -132,7 +134,10 @@ const NearbyPage = () => {
                 </span>
               </div>
 
-              <button className="w-full py-2.5 text-xs font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors">
+              <button
+                onClick={() => navigate(`/customer/book/${business._id}`)}
+                className="w-full py-2.5 text-xs font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+              >
                 Book Now
               </button>
             </div>
