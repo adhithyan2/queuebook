@@ -24,6 +24,8 @@ export default function LoginPage() {
       const redirect = searchParams.get('redirect');
       if (redirect && redirect.startsWith('/')) {
         navigate(redirect);
+      } else if (data.user.role === 'admin') {
+        navigate('/admin');
       } else {
         navigate(data.user.role === 'business' ? '/business/dashboard' : '/customer/dashboard');
       }
@@ -95,6 +97,10 @@ export default function LoginPage() {
       <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mt-6">
         Don't have an account?{' '}
         <Link to="/register" className="font-semibold text-primary hover:text-primary-dark transition-colors">Create one</Link>
+      </p>
+
+      <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500 mt-3">
+        Business owner? Sign in with your business account to manage your queue.
       </p>
     </div>
   );
