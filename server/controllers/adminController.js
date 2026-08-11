@@ -21,6 +21,29 @@ exports.getBusinesses = async (req, res, next) => {
   }
 };
 
+exports.setBusinessApproval = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const business = await Business.findByIdAndUpdate(
+      req.params.id,
+      { approvalStatus: status, isActive: status === 'approved' },
+      { new: true }
+    ).populate('owner', 'name email');
+
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    res.json({ business });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getReports = async (req, res, next) => {
   try {
     const totalUsers = await User.countDocuments();

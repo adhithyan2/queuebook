@@ -36,6 +36,7 @@ export const appointmentAPI = {
   getAll: () => API.get('/appointments'),
   getById: (id) => API.get(`/appointments/${id}`),
   cancel: (id) => API.put(`/appointments/${id}/cancel`),
+  reschedule: (id, data) => API.put(`/appointments/${id}/reschedule`, data),
 };
 
 export const queueAPI = {
@@ -49,6 +50,8 @@ export const customerAPI = {
   getDashboard: () => API.get('/customer/dashboard'),
   getNearby: (params) => API.get('/customer/nearby', { params }),
   getReviews: (businessId) => API.get(`/customer/reviews/${businessId}`),
+  getBusinessPublic: (businessId) => API.get(`/customer/public/${businessId}`),
+  verifyQueueToken: (queueId) => API.get(`/customer/verify/${queueId}`),
   updateProfile: (data) => API.put('/customer/profile', data),
 };
 
@@ -77,4 +80,5 @@ export const adminAPI = {
   getUsers: () => API.get('/admin/users'),
   getBusinesses: () => API.get('/admin/businesses'),
   getReports: () => API.get('/admin/reports'),
+  setApproval: (id, status) => API.put(`/admin/businesses/${id}/approval`, { status }),
 };

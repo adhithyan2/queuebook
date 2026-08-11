@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
@@ -9,6 +9,7 @@ import { HiOutlineMail, HiOutlineLockClosed, HiOutlineEye, HiOutlineEyeOff } fro
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +21,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await login(form.email, form.password);
-      navigate(data.user.role === 'business' ? '/business/dashboard' : '/customer/dashboard');
+      const redirect = searchParams.get('redirect');
+      if (redirect && redirect.startsWith('/')) {
+        navigate(redirect);
+      } else {
+        navigate(data.user.role === 'business' ? '/business/dashboard' : '/customer/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally { setLoading(false); }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Html5Qrcode } from 'html5-qrcode';
 import { businessAPI, customerAPI } from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +8,7 @@ import {
   HiOutlinePlay, HiOutlinePause, HiOutlineCheck, HiOutlineXMark,
   HiOutlinePlus, HiOutlineUsers, HiOutlineClock, HiOutlineStar,
   HiOutlineArrowPath, HiOutlineMegaphone, HiOutlineCalendar,
+  HiOutlineShieldCheck, HiOutlineShieldExclamation, HiOutlineQrCode,
 } from 'react-icons/hi2';
 
 function useTimer(isRunning) {
@@ -31,6 +33,9 @@ export default function BusinessDashboardPage() {
   const [walkInName, setWalkInName] = useState('');
   const [adding, setAdding] = useState(false);
   const [queuePaused, setQueuePaused] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanned, setScanned] = useState(null);
+  const scannerRef = useRef(null);
 
   const loadDashboard = () => {
     Promise.all([businessAPI.getDashboard(), businessAPI.getAnalytics()])
@@ -60,17 +65,85 @@ export default function BusinessDashboardPage() {
     setAdding(false);
   };
 
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      try { scannerRef.current.stop(); } catch {}
+      scannerRef.current = null;
+    }
+    setShowScanner(false);
+    setScanned(null);
+  };
+
+  const startScanner = () => {
+    setShowScanner(true);
+    setScanned(null);
+    setTimeout(() => {
+      const element = document.getElementById('qr-scanner');
+      if (!element) return;
+      try {
+        const scanner = new Html5Qrcode('qr-scanner');
+        scannerRef.current = scanner;
+        scanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            await scanner.stop();
+            scannerRef.current = null;
+            const match = decodedText.match(/\/verify\/([a-f0-9]{24})/i);
+            if (!match) { setScanned({ error: 'Not a QueueBook check-in token' }); return; }
+            try {
+              const r = await customerAPI.verifyQueueToken(match[1]);
+              setScanned(r.data.queue);
+            } catch (e) {
+              setScanned({ error: e.response?.data?.message || 'Token verification failed' });
+            }
+          },
+          (error) => { if (error?.name !== 'NotFoundException') console.warn(error); }
+        );
+      } catch (e) {
+        setScanned({ error: 'Could not start camera: ' + e.message });
+      }
+    }, 150);
+  };
+
   const { queue = [], business } = dashboard || {};
   const called = queue.find(q => q.status === 'called');
   const waiting = queue.filter(q => q.status === 'waiting');
   const completed = queue.filter(q => q.status === 'completed');
   const skipped = queue.filter(q => q.status === 'skipped');
   const timer = useTimer(!!called);
+  const notApproved = business?.approvalStatus === 'pending' || business?.approvalStatus === 'rejected';
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {notApproved && (
+        <div className={`flex items-start gap-3 rounded-2xl border px-5 py-4 mb-6 ${
+          business?.approvalStatus === 'rejected'
+            ? 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'
+            : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20'
+        }`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            business?.approvalStatus === 'rejected' ? 'bg-red-100 dark:bg-red-500/20' : 'bg-amber-100 dark:bg-amber-500/20'
+          }`}>
+            {business?.approvalStatus === 'rejected'
+              ? <HiOutlineShieldExclamation className="w-5 h-5 text-red-600 dark:text-red-400" />
+              : <HiOutlineShieldCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+              {business?.approvalStatus === 'rejected' ? 'Business application rejected' : 'Business awaiting approval'}
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
+              {business?.approvalStatus === 'rejected'
+                ? 'Your business was not approved by the QueueBook admin. Contact support if you believe this is a mistake.'
+                : 'Your business is under review. Customers cannot see or book your business until an admin approves it. Queue tools are read-only for now.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{business?.name || 'Dashboard'}</h1>
@@ -107,12 +180,12 @@ export default function BusinessDashboardPage() {
                 </div>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleComplete(called._id)}
-                  className="h-10 px-5 rounded-xl bg-emerald-500 text-white text-sm font-semibold flex items-center gap-1.5 hover:bg-emerald-600 transition-colors">
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleComplete(called._id)} disabled={notApproved}
+                  className="h-10 px-5 rounded-xl bg-emerald-500 text-white text-sm font-semibold flex items-center gap-1.5 hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   <HiOutlineCheck className="w-4 h-4" /> Complete
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleSkip(called._id)}
-                  className="h-10 px-5 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-sm font-semibold flex items-center gap-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleSkip(called._id)} disabled={notApproved}
+                  className="h-10 px-5 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-sm font-semibold flex items-center gap-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   <HiOutlineXMark className="w-4 h-4" /> Skip
                 </motion.button>
               </div>
@@ -157,23 +230,27 @@ export default function BusinessDashboardPage() {
 
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 mb-5">
         <div className="flex flex-wrap gap-2">
-          <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={handleCallNext} disabled={waiting.length === 0}
+          <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={handleCallNext} disabled={waiting.length === 0 || notApproved}
             className="h-10 px-5 rounded-xl gradient-primary text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
             <HiOutlineMegaphone className="w-4 h-4" /> Call Next
           </motion.button>
-          <button onClick={() => { if (called) handleCallNext(); }} disabled={!called}
+          <button onClick={() => { if (called) handleCallNext(); }} disabled={!called || notApproved}
             className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors flex items-center gap-1.5">
             <HiOutlineArrowPath className="w-4 h-4" /> Recall
           </button>
-          <button onClick={() => setQueuePaused(p => !p)}
-            className={`h-10 px-4 rounded-xl border text-sm font-medium flex items-center gap-1.5 transition-colors ${
+          <button onClick={() => setQueuePaused(p => !p)} disabled={notApproved}
+            className={`h-10 px-4 rounded-xl border text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
               queuePaused ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}>
             {queuePaused ? <><HiOutlinePlay className="w-4 h-4" /> Resume</> : <><HiOutlinePause className="w-4 h-4" /> Pause</>}
           </button>
           <div className="flex-1" />
-          <button onClick={() => setShowWalkIn(true)}
-            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5">
+          <button onClick={startScanner} disabled={notApproved}
+            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+            <HiOutlineQrCode className="w-4 h-4" /> Scan QR
+          </button>
+          <button onClick={() => setShowWalkIn(true)} disabled={notApproved}
+            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
             <HiOutlinePlus className="w-4 h-4" /> Walk-in
           </button>
         </div>
@@ -208,8 +285,8 @@ export default function BusinessDashboardPage() {
                     <td className="py-3 text-sm text-zinc-500 dark:text-zinc-400 font-mono">{item.timeSlot || '—'}</td>
                     <td className="py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => handleComplete(item._id)} className="px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors">Done</button>
-                        <button onClick={() => handleSkip(item._id)} className="px-3 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">Skip</button>
+                        <button onClick={() => handleComplete(item._id)} disabled={notApproved} className="px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors disabled:opacity-40">Done</button>
+                        <button onClick={() => handleSkip(item._id)} disabled={notApproved} className="px-3 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40">Skip</button>
                       </div>
                     </td>
                   </tr>
@@ -266,6 +343,54 @@ export default function BusinessDashboardPage() {
       </div>
 
       <AnimatePresence>
+        {showScanner && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={stopScanner}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-sm border border-zinc-100 dark:border-zinc-800 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Scan Check-in Token</h3>
+                <button onClick={stopScanner} className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                  <HiOutlineXMark className="w-4 h-4" />
+                </button>
+              </div>
+
+              {!scanned ? (
+                <>
+                  <div id="qr-scanner" className="w-full aspect-square rounded-xl overflow-hidden bg-zinc-950 mb-3" />
+                  <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
+                    Point the camera at the customer's QR code
+                  </p>
+                </>
+              ) : scanned.error ? (
+                <div className="text-center py-6">
+                  <HiOutlineShieldExclamation className="w-10 h-10 text-red-500 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Verification Failed</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{scanned.error}</p>
+                  <button onClick={startScanner} className="mt-4 px-4 py-2 text-xs font-medium bg-primary text-white rounded-xl hover:opacity-90 transition-opacity">
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                    <HiOutlineCheck className="w-7 h-7 text-emerald-600" />
+                  </div>
+                  <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{scanned.customerName || scanned.walkInName || 'Customer'}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{scanned.businessName}</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold mt-3">
+                    Token Q{scanned.tokenNumber}
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 capitalize">
+                    Status: {scanned.status}{scanned.position ? ` · Position #${scanned.position}` : ''}
+                  </p>
+                  <button onClick={stopScanner} className="mt-4 w-full h-10 rounded-xl gradient-primary text-white text-sm font-semibold">
+                    Done
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+
         {showWalkIn && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowWalkIn(false)}>
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-sm border border-zinc-100 dark:border-zinc-800 shadow-xl">

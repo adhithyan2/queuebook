@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineSearch, HiOutlineStar, HiOutlineLocationMarker, HiOutlinePhone } from 'react-icons/hi';
 import { customerAPI } from '../../services/api';
+import VerifiedBadge from '../../components/ui/VerifiedBadge';
 
 const categories = ['All', 'Hospital', 'Clinic', 'Salon', 'Restaurant', 'Office', 'Laboratory'];
 
@@ -107,8 +108,9 @@ const NearbyPage = () => {
                     <HiOutlineLocationMarker className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
                       {business.name}
+                      <VerifiedBadge />
                     </h3>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">{business.category}</p>
                   </div>

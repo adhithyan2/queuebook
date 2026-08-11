@@ -64,7 +64,19 @@ module.exports = { io, app, server };
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().finally(() => {
+connectDB().then(async () => {
+  try {
+    const Business = require('./models/Business');
+    const res = await Business.updateMany(
+      { approvalStatus: { $exists: false } },
+      { $set: { approvalStatus: 'approved' } }
+    );
+    if (res.modifiedCount > 0) {
+      console.log(`Migration: approved ${res.modifiedCount} legacy business(es)`);
+    }
+  } catch (err) {
+    console.warn('Migration skipped:', err.message);
+  }
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
   });

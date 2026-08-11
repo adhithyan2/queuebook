@@ -37,6 +37,9 @@ exports.callNext = async (req, res, next) => {
     if (!business) {
       return res.status(404).json({ message: 'Business not found' });
     }
+    if (business.approvalStatus !== 'approved') {
+      return res.status(403).json({ message: 'Business must be approved before managing the queue' });
+    }
 
     const { start, end } = getTodayRange();
 
@@ -55,6 +58,21 @@ exports.callNext = async (req, res, next) => {
     await nextInQueue.save();
 
     const populated = await Queue.findById(nextInQueue._id).populate('user', 'name email');
+
+    if (business.queueSettings?.noShowTimeoutMin > 0) {
+      const timeoutMs = business.queueSettings.noShowTimeoutMin * 60 * 1000;
+      setTimeout(async () => {
+        try {
+          const entry = await Queue.findById(nextInQueue._id);
+          if (entry && entry.status === 'called') {
+            entry.status = 'skipped';
+            await entry.save();
+          }
+        } catch (err) {
+          console.error('Auto-skip error:', err.message);
+        }
+      }, timeoutMs);
+    }
 
     res.json({ queue: populated });
   } catch (error) {
@@ -104,6 +122,9 @@ exports.addWalkIn = async (req, res, next) => {
     const business = await Business.findOne({ owner: req.user._id });
     if (!business) {
       return res.status(404).json({ message: 'Business not found' });
+    }
+    if (business.approvalStatus !== 'approved') {
+      return res.status(403).json({ message: 'Business must be approved before managing the queue' });
     }
 
     const { name } = req.body;
@@ -175,6 +196,7 @@ exports.createOrUpdateProfile = async (req, res, next) => {
       avgServiceTime: avgServiceTime || 5,
       location: location || { type: 'Point', coordinates: [0, 0] },
       queueSettings: queueSettings || { tokenPrefix: 'Q', maxDailyTokens: 100, autoAssignToken: true, maxQueuePerCustomer: 1 },
+      approvalStatus: 'pending',
     });
 
     res.status(201).json({ business, message: 'Business created' });

@@ -68,7 +68,7 @@ exports.getDashboard = async (req, res, next) => {
 
     const unreadCount = await Notification.countDocuments({ user: req.user._id, read: false });
 
-    const nearbyBusinesses = await Business.find({ isActive: true })
+    const nearbyBusinesses = await Business.find({ isActive: true, approvalStatus: 'approved' })
       .limit(6)
       .sort({ rating: -1 });
 
@@ -89,7 +89,7 @@ exports.getDashboard = async (req, res, next) => {
 exports.getNearbyBusinesses = async (req, res, next) => {
   try {
     const { category, search, lat, lng, radius } = req.query;
-    const filter = { isActive: true };
+    const filter = { isActive: true, approvalStatus: 'approved' };
     if (category) filter.category = category;
     if (search) filter.name = { $regex: search, $options: 'i' };
 
@@ -124,6 +124,91 @@ exports.getBusinessReviews = async (req, res, next) => {
       .populate('user', 'name')
       .sort({ createdAt: -1 });
     res.json({ reviews });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getBusinessPublic = async (req, res, next) => {
+  try {
+    const business = await Business.findOne({
+      _id: req.params.businessId,
+      isActive: true,
+      approvalStatus: 'approved',
+    });
+
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    const { start, end } = getTodayRange();
+    const waiting = await Queue.countDocuments({
+      business: business._id,
+      queueDate: { $gte: start, $lte: end },
+      status: 'waiting',
+    });
+    const called = await Queue.countDocuments({
+      business: business._id,
+      queueDate: { $gte: start, $lte: end },
+      status: 'called',
+    });
+
+    const currentToken = await Queue.findOne({
+      business: business._id,
+      queueDate: { $gte: start, $lte: end },
+      status: 'called',
+    }).sort({ calledAt: -1 });
+
+    const reviews = await Review.find({ business: business._id })
+      .populate('user', 'name')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.json({
+      business,
+      liveQueue: {
+        waiting,
+        beingServed: called,
+        currentToken: currentToken?.tokenNumber || null,
+        estimatedWait: waiting * (business.avgServiceTime || 5),
+      },
+      recentReviews: reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.verifyQueueToken = async (req, res, next) => {
+  try {
+    const queue = await Queue.findById(req.params.queueId)
+      .populate('business', 'name')
+      .populate('user', 'name');
+
+    if (!queue) {
+      return res.status(404).json({ message: 'Token not found' });
+    }
+
+    const { start, end } = getTodayRange();
+    const peopleAhead = await Queue.countDocuments({
+      business: queue.business._id,
+      queueDate: { $gte: start, $lte: end },
+      tokenNumber: { $lt: queue.tokenNumber },
+      status: { $in: ['waiting', 'called'] },
+    });
+
+    res.json({
+      queue: {
+        _id: queue._id,
+        tokenNumber: queue.tokenNumber,
+        status: queue.status,
+        walkInName: queue.walkInName,
+        customerName: queue.user?.name,
+        businessName: queue.business?.name,
+        position: peopleAhead + 1,
+        estimatedWaitTime: peopleAhead * (queue.business?.avgServiceTime || 5),
+      },
+    });
   } catch (error) {
     next(error);
   }

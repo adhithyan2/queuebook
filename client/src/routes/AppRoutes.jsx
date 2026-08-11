@@ -11,6 +11,8 @@ const LoginPage = lazy(() => import('../pages/Login/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Register/RegisterPage'));
 const AdminPage = lazy(() => import('../pages/Admin/AdminPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFound/NotFoundPage'));
+const VerifyPage = lazy(() => import('../pages/Verify/VerifyPage'));
+const PublicBusinessPage = lazy(() => import('../pages/Public/PublicBusinessPage'));
 const CustomerDashboardPage = lazy(() => import('../pages/Customer/DashboardPage'));
 const CustomerAppointmentsPage = lazy(() => import('../pages/Customer/AppointmentsPage'));
 const CustomerQueuePage = lazy(() => import('../pages/Customer/QueuePage'));
@@ -59,6 +61,8 @@ export default function AppRoutes() {
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
+        <Route path="/b/:businessId" element={<PublicBusinessPage />} />
+        <Route path="/verify/:queueId" element={<VerifyPage />} />
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

@@ -5,6 +5,7 @@ import { HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMar
 import { useAuth } from '../../context/AuthContext';
 import { customerAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
+import VerifiedBadge from '../../components/ui/VerifiedBadge';
 import SmartArrivalWidget from '../../components/dashboard/SmartArrivalWidget';
 
 const DashboardPage = () => {
@@ -80,8 +81,9 @@ const DashboardPage = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
                     {dashboard.upcomingAppointment.business?.name}
+                    <VerifiedBadge />
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                     {dashboard.upcomingAppointment.service} • Token {dashboard.upcomingAppointment.tokenNumber}

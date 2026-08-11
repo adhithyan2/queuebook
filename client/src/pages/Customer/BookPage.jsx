@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineCalendar, HiOutlineClock, HiOutlineCheck } from 'react-icons/hi';
 import { customerAPI, appointmentAPI } from '../../services/api';
+import VerifiedBadge from '../../components/ui/VerifiedBadge';
 
 const BookPage = () => {
   const { businessId } = useParams();
@@ -113,8 +114,9 @@ const BookPage = () => {
         <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
           Book Appointment
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 flex items-center gap-1">
           {business?.name}
+          <VerifiedBadge />
         </p>
       </div>
 

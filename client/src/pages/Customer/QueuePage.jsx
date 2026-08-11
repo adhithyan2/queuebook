@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { QRCodeCanvas } from 'qrcode.react';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
+import { HiOutlineQrCode } from 'react-icons/hi2';
 import { useSocket } from '../../context/SocketContext';
 import { queueAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
@@ -111,7 +113,7 @@ const QueuePage = () => {
                     </p>
                   </div>
                 </div>
-                <Badge variant={queue.status === 'waiting' ? 'warning' : 'success'}>
+                <Badge variant={queue.status === 'waiting' ? 'waiting' : 'active'}>
                   {queue.status}
                 </Badge>
               </div>
@@ -153,6 +155,28 @@ const QueuePage = () => {
                     <HiOutlineTrendingUp className="w-4 h-4" />
                   )}
                   <span className="text-xs font-medium">{getStatusText(queue.position)}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-lg p-2 flex-shrink-0">
+                  <QRCodeCanvas
+                    value={`${window.location.origin}/verify/${queue._id}`}
+                    size={72}
+                    level="M"
+                    bgColor="#ffffff"
+                    fgColor="#0f172a"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    <HiOutlineQrCode className="w-3.5 h-3.5 text-primary" />
+                    Check-in Token
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                    Show this QR to the {queue.business?.name || 'business'} desk to verify your spot.
+                  </p>
+                  <p className="text-[10px] font-mono text-zinc-400 mt-1 truncate">Token Q{queue.tokenNumber}</p>
                 </div>
               </div>
             </div>

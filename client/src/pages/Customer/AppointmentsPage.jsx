@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
+import { HiOutlineXMark, HiOutlineArrowPath } from 'react-icons/hi2';
 import { appointmentAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
+import VerifiedBadge from '../../components/ui/VerifiedBadge';
 
 const tabs = ['Upcoming', 'Past', 'All'];
+
+const statusVariant = {
+  confirmed: 'confirmed',
+  pending: 'pending',
+  completed: 'completed',
+  cancelled: 'cancelled',
+};
 
 const AppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Upcoming');
+  const [busyId, setBusyId] = useState(null);
+  const [rescheduleFor, setRescheduleFor] = useState(null);
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('');
 
   useEffect(() => {
     fetchAppointments();
@@ -32,15 +45,38 @@ const AppointmentsPage = () => {
     return true;
   });
 
-  const getStatusVariant = (status) => {
-    switch (status) {
-      case 'confirmed': return 'success';
-      case 'pending': return 'primary';
-      case 'completed': return 'default';
-      case 'cancelled': return 'danger';
-      default: return 'default';
+  const handleCancel = async (id) => {
+    if (!window.confirm('Cancel this appointment? Your queue token will also be removed.')) return;
+    setBusyId(id);
+    try {
+      await appointmentAPI.cancel(id);
+      await fetchAppointments();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to cancel appointment');
     }
+    setBusyId(null);
   };
+
+  const openReschedule = (apt) => {
+    setRescheduleFor(apt);
+    setNewDate(apt.date?.split('T')[0] || '');
+    setNewTime(apt.timeSlot || '');
+  };
+
+  const handleReschedule = async () => {
+    if (!newDate || !newTime) { alert('Please pick a new date and time'); return; }
+    setBusyId(rescheduleFor._id);
+    try {
+      await appointmentAPI.reschedule(rescheduleFor._id, { date: newDate, timeSlot: newTime });
+      setRescheduleFor(null);
+      await fetchAppointments();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to reschedule appointment');
+    }
+    setBusyId(null);
+  };
+
+  const timeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
 
   const formatDate = (date) => {
     if (!date) return '—';
@@ -117,15 +153,16 @@ const AppointmentsPage = () => {
                     <HiOutlineCalendar className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
                       {appointment.business?.name || 'Business'}
+                      <VerifiedBadge />
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       {appointment.service}
                     </p>
                   </div>
                 </div>
-                <Badge variant={getStatusVariant(appointment.status)}>
+                <Badge variant={statusVariant[appointment.status] || 'default'}>
                   {appointment.status}
                 </Badge>
               </div>
@@ -142,11 +179,97 @@ const AppointmentsPage = () => {
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   Token {appointment.tokenNumber ?? '—'}
                 </span>
+                <div className="flex-1" />
+                {['pending', 'confirmed'].includes(appointment.status) && (
+                  <>
+                    <button
+                      onClick={() => openReschedule(appointment)}
+                      disabled={busyId === appointment._id}
+                      className="px-3 py-1.5 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors flex items-center gap-1 disabled:opacity-50"
+                    >
+                      <HiOutlineArrowPath className="w-3.5 h-3.5" /> Reschedule
+                    </button>
+                    <button
+                      onClick={() => handleCancel(appointment._id)}
+                      disabled={busyId === appointment._id}
+                      className="px-3 py-1.5 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors flex items-center gap-1 disabled:opacity-50"
+                    >
+                      <HiOutlineXMark className="w-3.5 h-3.5" /> Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {rescheduleFor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setRescheduleFor(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-md border border-zinc-100 dark:border-zinc-800 shadow-xl"
+            >
+              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">Reschedule Appointment</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5">
+                {rescheduleFor.business?.name} • {rescheduleFor.service}
+              </p>
+
+              <label className="block text-[13px] font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">New Date</label>
+              <input
+                type="date"
+                value={newDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setNewDate(e.target.value)}
+                className="w-full h-11 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4"
+              />
+
+              <label className="block text-[13px] font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">New Time</label>
+              <div className="grid grid-cols-4 gap-2 mb-5 max-h-44 overflow-y-auto">
+                {timeSlots.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => setNewTime(time)}
+                    className={`h-10 text-xs font-medium rounded-xl transition-all ${
+                      newTime === time
+                        ? 'bg-gradient-to-r from-primary to-indigo-500 text-white shadow-lg shadow-primary/25'
+                        : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRescheduleFor(null)}
+                  className="flex-1 h-10 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReschedule}
+                  disabled={busyId === rescheduleFor._id || !newDate || !newTime}
+                  className="flex-1 h-10 rounded-xl gradient-primary text-white text-sm font-semibold disabled:opacity-40 transition-all"
+                >
+                  {busyId === rescheduleFor._id ? 'Saving...' : 'Confirm New Time'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

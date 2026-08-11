@@ -20,9 +20,15 @@ const businessSchema = new mongoose.Schema({
     maxDailyTokens: { type: Number, default: 100 },
     autoAssignToken: { type: Boolean, default: true },
     maxQueuePerCustomer: { type: Number, default: 1 },
+    noShowTimeoutMin: { type: Number, default: 0 },
   },
   rating: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
+  approvalStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'approved',
+  },
 }, { timestamps: true });
 
 businessSchema.index({ location: '2dsphere' });
