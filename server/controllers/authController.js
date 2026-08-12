@@ -11,6 +11,13 @@ const generateToken = (id) => {
 
 const hashOtp = (otp) => crypto.createHash('sha256').update(String(otp)).digest('hex');
 
+const normalizePhone = (phone) => {
+  const clean = String(phone).replace(/[^0-9+]/g, '');
+  if (clean.startsWith('+')) return clean;
+  if (clean.length === 10) return `+91${clean}`;
+  return clean;
+};
+
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password, role, phone } = req.body;
@@ -80,7 +87,7 @@ exports.sendPhoneOtp = async (req, res, next) => {
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-    req.user.phone = String(phone).trim();
+    req.user.phone = normalizePhone(phone);
     req.user.phoneOtp = hashOtp(otp);
     req.user.phoneOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await req.user.save();

@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiOutlineCalendar, HiOutlineClock, HiOutlineCheck, HiOutlineDeviceMobile } from 'react-icons/hi';
+import { HiOutlineCalendar, HiOutlineClock, HiOutlineCheck } from 'react-icons/hi';
 import { customerAPI, appointmentAPI } from '../../services/api';
 import VerifiedBadge from '../../components/ui/VerifiedBadge';
-import PhoneVerifyPanel from '../../components/PhoneVerify/PhoneVerifyPanel';
-import { useAuth } from '../../context/AuthContext';
 
 const BookPage = () => {
   const { businessId } = useParams();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState('');
@@ -18,8 +15,6 @@ const BookPage = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [booking, setBooking] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [phoneVerified, setPhoneVerified] = useState(Boolean(user?.phoneVerified));
 
   useEffect(() => {
     fetchBusiness();
@@ -64,10 +59,6 @@ const BookPage = () => {
   const handleBook = async () => {
     if (!service || !selectedDate || !selectedTime) {
       setMessage({ type: 'error', text: 'Please select a service, date and time' });
-      return;
-    }
-    if (!phoneVerified) {
-      setMessage({ type: 'error', text: 'Please verify your phone number to receive queue updates' });
       return;
     }
 
@@ -229,29 +220,6 @@ const BookPage = () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
-        <div className="flex items-center gap-2 mb-1">
-          <HiOutlineDeviceMobile className="w-4 h-4 text-primary" />
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Mobile Queue Updates</h2>
-        </div>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-          Verify your number to get SMS/WhatsApp alerts when your turn is near. Required to complete the booking.
-        </p>
-        <PhoneVerifyPanel
-          phone={phone}
-          onPhoneChange={(value) => {
-            setPhone(value);
-            if (value !== user?.phone) setPhoneVerified(false);
-          }}
-          verified={phoneVerified}
-          onVerified={(updatedUser) => {
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setPhoneVerified(true);
-          }}
-        />
-      </div>
-
       {message.text && (
         <div className={`p-3 rounded-xl text-xs font-medium ${
           message.type === 'success'
@@ -264,7 +232,7 @@ const BookPage = () => {
 
       <button
         onClick={handleBook}
-        disabled={!selectedDate || !selectedTime || booking || !phoneVerified}
+        disabled={!selectedDate || !selectedTime || booking}
         className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {booking ? (
@@ -272,7 +240,7 @@ const BookPage = () => {
         ) : (
           <>
             <HiOutlineCheck className="w-4 h-4" />
-            {phoneVerified ? 'Confirm Booking' : 'Verify Phone to Book'}
+            Confirm Booking
           </>
         )}
       </button>
