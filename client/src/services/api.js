@@ -44,6 +44,7 @@ export const queueAPI = {
   getMyQueue: () => API.get('/queue/my'),
   getStatus: (id) => API.get(`/queue/${id}/status`),
   leave: (id) => API.put(`/queue/${id}/leave`),
+  getScan: (id) => API.get(`/queue/${id}/scan`),
 };
 
 export const customerAPI = {

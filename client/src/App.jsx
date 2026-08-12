@@ -7,7 +7,10 @@ import AppRoutes from './routes/AppRoutes';
 import IntroScreen from './components/Intro/IntroScreen';
 
 export default function App() {
-  const [introDone, setIntroDone] = useState(false);
+  const [introDone, setIntroDone] = useState(() => {
+    const isScanRoute = /^\/queue\/[^/]+\/scan$/.test(window.location.pathname);
+    return isScanRoute;
+  });
   const handleIntroComplete = useCallback(() => setIntroDone(true), []);
 
   return (

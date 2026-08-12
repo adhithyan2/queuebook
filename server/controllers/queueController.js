@@ -107,6 +107,52 @@ exports.getQueueStatus = async (req, res, next) => {
   }
 };
 
+exports.getQueueScan = async (req, res, next) => {
+  try {
+    const queue = await Queue.findById(req.params.id)
+      .populate('business', 'name category address phone avgServiceTime')
+      .populate('appointment', 'service timeSlot');
+
+    if (!queue) {
+      return res.status(404).json({ message: 'Queue not found' });
+    }
+
+    const { start, end } = getTodayRange();
+
+    const peopleAhead = await Queue.countDocuments({
+      business: queue.business._id,
+      queueDate: { $gte: start, $lte: end },
+      tokenNumber: { $lt: queue.tokenNumber },
+      status: { $in: ['waiting', 'called'] },
+    });
+
+    const currentToken = await Queue.findOne({
+      business: queue.business._id,
+      queueDate: { $gte: start, $lte: end },
+      status: 'called',
+    }).sort({ calledAt: -1 });
+
+    res.json({
+      queue: {
+        _id: queue._id,
+        tokenNumber: queue.tokenNumber,
+        status: queue.status,
+        businessName: queue.business?.name || 'Business',
+        businessCategory: queue.business?.category || '',
+        businessAddress: queue.business?.address || '',
+        serviceName: queue.appointment?.service || '',
+        currentToken: currentToken?.tokenNumber || null,
+        peopleAhead,
+        position: peopleAhead + 1,
+        estimatedWaitTime: calculateWaitTime(peopleAhead, queue.business?.avgServiceTime || 5),
+        lastUpdated: queue.updatedAt || queue.createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.leaveQueue = async (req, res, next) => {
   try {
     const queue = await Queue.findByIdAndUpdate(

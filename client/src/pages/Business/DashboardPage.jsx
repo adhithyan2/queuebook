@@ -89,7 +89,7 @@ export default function BusinessDashboardPage() {
           async (decodedText) => {
             await scanner.stop();
             scannerRef.current = null;
-            const match = decodedText.match(/\/verify\/([a-f0-9]{24})/i);
+            const match = decodedText.match(/\/queue\/([a-f0-9]{24})\/scan/i) || decodedText.match(/\/verify\/([a-f0-9]{24})/i);
             if (!match) { setScanned({ error: 'Not a QueueBook check-in token' }); return; }
             try {
               const r = await customerAPI.verifyQueueToken(match[1]);

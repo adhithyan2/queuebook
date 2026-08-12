@@ -161,7 +161,7 @@ const QueuePage = () => {
               <div className="mt-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
                 <div className="bg-white dark:bg-zinc-900 rounded-lg p-2 flex-shrink-0">
                   <QRCodeCanvas
-                    value={`${window.location.origin}/verify/${queue._id}`}
+                    value={`${window.location.origin}/queue/${queue._id}/scan`}
                     size={72}
                     level="M"
                     bgColor="#ffffff"

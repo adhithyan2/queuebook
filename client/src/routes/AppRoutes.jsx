@@ -12,6 +12,7 @@ const RegisterPage = lazy(() => import('../pages/Register/RegisterPage'));
 const AdminPage = lazy(() => import('../pages/Admin/AdminPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFound/NotFoundPage'));
 const VerifyPage = lazy(() => import('../pages/Verify/VerifyPage'));
+const QueueScanPage = lazy(() => import('../pages/Scan/QueueScanPage'));
 const PublicBusinessPage = lazy(() => import('../pages/Public/PublicBusinessPage'));
 const CustomerDashboardPage = lazy(() => import('../pages/Customer/DashboardPage'));
 const CustomerAppointmentsPage = lazy(() => import('../pages/Customer/AppointmentsPage'));
@@ -64,6 +65,7 @@ export default function AppRoutes() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/b/:businessId" element={<PublicBusinessPage />} />
         <Route path="/verify/:queueId" element={<VerifyPage />} />
+        <Route path="/queue/:queueId/scan" element={<QueueScanPage />} />
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
