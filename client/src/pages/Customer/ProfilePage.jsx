@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker, HiOutlineCheck } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineMail, HiOutlineLocationMarker, HiOutlineCheck } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import { customerAPI } from '../../services/api';
+import PhoneVerifyPanel from '../../components/PhoneVerify/PhoneVerifyPanel';
 
 const ProfilePage = () => {
   const { user, setUser } = useAuth();
@@ -10,6 +11,7 @@ const ProfilePage = () => {
     name: '',
     phone: '',
   });
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -22,6 +24,7 @@ const ProfilePage = () => {
         name: user.name || '',
         phone: user.phone || '',
       });
+      setPhoneVerified(Boolean(user.phoneVerified));
       if (user.location) {
         setLocation(user.location);
       }
@@ -29,7 +32,14 @@ const ProfilePage = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleVerified = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setPhoneVerified(true);
+    setMessage({ type: 'success', text: 'Phone verified successfully' });
   };
 
   const handleDetectLocation = () => {
@@ -148,19 +158,17 @@ const ProfilePage = () => {
 
           <div>
             <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-              Phone Number
+              Phone Number (for SMS/WhatsApp queue updates)
             </label>
-            <div className="relative">
-              <HiOutlinePhone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+1 (555) 000-0000"
-                className="w-full pl-9 pr-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-zinc-400"
-              />
-            </div>
+            <PhoneVerifyPanel
+              phone={formData.phone}
+              onPhoneChange={(phone) => {
+                setFormData((prev) => ({ ...prev, phone }));
+                if (phone !== user?.phone) setPhoneVerified(false);
+              }}
+              verified={phoneVerified}
+              onVerified={handleVerified}
+            />
           </div>
 
           <div>

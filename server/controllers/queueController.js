@@ -1,6 +1,8 @@
 const Queue = require('../models/Queue');
 const Appointment = require('../models/Appointment');
+const Business = require('../models/Business');
 const { getTodayRange, generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
+const { notifyUser } = require('../services/notificationService');
 
 exports.joinQueue = async (req, res, next) => {
   try {
@@ -28,6 +30,21 @@ exports.joinQueue = async (req, res, next) => {
     if (appointmentId) {
       await Appointment.findByIdAndUpdate(appointmentId, { tokenNumber });
     }
+
+    const businessDoc = await Business.findById(business).select('name avgServiceTime');
+    await notifyUser({
+      user: req.user,
+      business: businessDoc,
+      queue,
+      appointment: appointmentId,
+      type: 'booking_confirmed',
+      templateData: {
+        businessName: businessDoc?.name || 'the business',
+        tokenNumber,
+        peopleAhead: waitingCount,
+        waitTime: calculateWaitTime(waitingCount, businessDoc?.avgServiceTime),
+      },
+    });
 
     res.status(201).json({ queue });
   } catch (error) {
@@ -163,6 +180,20 @@ exports.leaveQueue = async (req, res, next) => {
     if (!queue) {
       return res.status(404).json({ message: 'Queue not found' });
     }
+
+    const businessDoc = await Business.findById(queue.business).select('name');
+    await notifyUser({
+      user: req.user,
+      business: businessDoc,
+      queue,
+      appointment: queue.appointment,
+      type: 'cancelled',
+      templateData: {
+        businessName: businessDoc?.name || 'the business',
+        tokenNumber: queue.tokenNumber,
+      },
+    });
+
     res.json({ queue });
   } catch (error) {
     next(error);

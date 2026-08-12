@@ -20,7 +20,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true);
     try {
-      await register({ name: form.name, email: form.email, password: form.password, role: form.role });
+      await register({ name: form.name, email: form.email, password: form.password, role: form.role, phone: form.phone });
       navigate(form.role === 'business' ? '/business/dashboard' : '/customer/dashboard');
     } catch (err) { setError(err.response?.data?.message || 'Registration failed'); }
     finally { setLoading(false); }

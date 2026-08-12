@@ -24,6 +24,7 @@ const CustomerNotificationsPage = lazy(() => import('../pages/Customer/Notificat
 const CustomerProfilePage = lazy(() => import('../pages/Customer/ProfilePage'));
 const BusinessDashboardPage = lazy(() => import('../pages/Business/DashboardPage'));
 const BusinessQueuePage = lazy(() => import('../pages/Business/QueuePage'));
+const BusinessMessagesPage = lazy(() => import('../pages/Business/MessagesPage'));
 const BusinessAnalyticsPage = lazy(() => import('../pages/Business/AnalyticsPage'));
 const BusinessReviewsPage = lazy(() => import('../pages/Business/ReviewsPage'));
 const BusinessProfilePage = lazy(() => import('../pages/Business/ProfilePage'));
@@ -87,6 +88,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute roles={['business']}><BusinessLayout /></ProtectedRoute>}>
           <Route path="/business/dashboard" element={<BusinessDashboardPage />} />
           <Route path="/business/queue" element={<BusinessQueuePage />} />
+          <Route path="/business/messages" element={<BusinessMessagesPage />} />
           <Route path="/business/analytics" element={<BusinessAnalyticsPage />} />
           <Route path="/business/reviews" element={<BusinessReviewsPage />} />
           <Route path="/business/profile" element={<BusinessProfilePage />} />

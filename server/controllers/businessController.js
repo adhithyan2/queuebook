@@ -2,6 +2,33 @@ const Queue = require('../models/Queue');
 const Appointment = require('../models/Appointment');
 const Business = require('../models/Business');
 const { getTodayRange, generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
+const { notifyUser } = require('../services/notificationService');
+
+async function notifyUpcomingUsers(businessId, businessName, avgServiceTime, limit = 2) {
+  const { start, end } = getTodayRange();
+  const upcoming = await Queue.find({
+    business: businessId,
+    queueDate: { $gte: start, $lte: end },
+    status: 'waiting',
+  })
+    .populate('user', 'name email phone phoneVerified')
+    .sort({ tokenNumber: 1 })
+    .limit(limit);
+
+  for (const [index, q] of upcoming.entries()) {
+    await notifyUser({
+      user: q.user,
+      business: businessId,
+      queue: q,
+      type: 'position_update',
+      templateData: {
+        businessName,
+        peopleAhead: index,
+        waitTime: index * (avgServiceTime || 5),
+      },
+    });
+  }
+}
 
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -57,7 +84,20 @@ exports.callNext = async (req, res, next) => {
     nextInQueue.calledAt = new Date();
     await nextInQueue.save();
 
-    const populated = await Queue.findById(nextInQueue._id).populate('user', 'name email');
+    const populated = await Queue.findById(nextInQueue._id).populate('user', 'name email phone phoneVerified');
+
+    await notifyUser({
+      user: populated.user,
+      business,
+      queue: populated,
+      appointment: populated.appointment,
+      type: 'turn_now',
+      templateData: {
+        businessName: business.name,
+        tokenNumber: populated.tokenNumber,
+      },
+    });
+    await notifyUpcomingUsers(business._id, business.name, business.avgServiceTime);
 
     if (business.queueSettings?.noShowTimeoutMin > 0) {
       const timeoutMs = business.queueSettings.noShowTimeoutMin * 60 * 1000;
@@ -86,10 +126,29 @@ exports.skipCustomer = async (req, res, next) => {
       req.params.id,
       { status: 'skipped' },
       { new: true }
-    );
+    ).populate('user', 'name email phone phoneVerified');
     if (!queue) {
       return res.status(404).json({ message: 'Queue entry not found' });
     }
+
+    const business = await Business.findById(queue.business).select('name avgServiceTime');
+
+    await notifyUser({
+      user: queue.user,
+      business,
+      queue,
+      appointment: queue.appointment,
+      type: 'cancelled',
+      templateData: {
+        businessName: business?.name || 'the business',
+        tokenNumber: queue.tokenNumber,
+      },
+    });
+
+    if (business) {
+      await notifyUpcomingUsers(business._id, business.name, business.avgServiceTime);
+    }
+
     res.json({ queue });
   } catch (error) {
     next(error);
@@ -102,13 +161,30 @@ exports.completeAppointment = async (req, res, next) => {
       req.params.id,
       { status: 'completed', completedAt: new Date() },
       { new: true }
-    );
+    ).populate('user', 'name email phone phoneVerified');
     if (!queue) {
       return res.status(404).json({ message: 'Queue entry not found' });
     }
 
     if (queue.appointment) {
       await Appointment.findByIdAndUpdate(queue.appointment, { status: 'completed' });
+    }
+
+    const business = await Business.findById(queue.business).select('name avgServiceTime');
+
+    await notifyUser({
+      user: queue.user,
+      business,
+      queue,
+      appointment: queue.appointment,
+      type: 'completed',
+      templateData: {
+        businessName: business?.name || 'the business',
+      },
+    });
+
+    if (business) {
+      await notifyUpcomingUsers(business._id, business.name, business.avgServiceTime);
     }
 
     res.json({ queue });

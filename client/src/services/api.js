@@ -29,6 +29,8 @@ export const authAPI = {
   login: (data) => API.post('/auth/login', data),
   register: (data) => API.post('/auth/register', data),
   getMe: () => API.get('/auth/me'),
+  sendOtp: (phone) => API.post('/auth/send-otp', { phone }),
+  verifyPhone: (otp) => API.post('/auth/verify-phone', { otp }),
 };
 
 export const appointmentAPI = {
@@ -74,6 +76,7 @@ export const smartArrivalAPI = {
 
 export const notificationAPI = {
   getAll: () => API.get('/notifications'),
+  getMessageLogs: () => API.get('/notifications/logs'),
   markRead: (id) => API.put(`/notifications/${id}/read`),
   markAllRead: () => API.put('/notifications/read-all'),
 };

@@ -31,9 +31,15 @@ function timeToMinutes(timeStr) {
 exports.updateProfile = async (req, res, next) => {
   try {
     const { name, phone, location } = req.body;
+    const updates = { name, phone, location };
+    if (phone && phone !== req.user.phone) {
+      updates.phoneVerified = false;
+      updates.phoneOtp = '';
+      updates.phoneOtpExpires = null;
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, location },
+      updates,
       { new: true, runValidators: true }
     );
     if (!user) return res.status(404).json({ message: 'User not found' });

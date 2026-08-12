@@ -4,12 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import {
   HiOutlineViewGrid, HiOutlineClipboardList, HiOutlineChartBar,
   HiOutlineStar, HiOutlineUser, HiOutlineCog,
-  HiOutlineSupport, HiOutlineLogout, HiOutlineX, HiOutlinePlus
+  HiOutlineSupport, HiOutlineLogout, HiOutlineX, HiOutlinePlus, HiOutlineChatAlt2
 } from 'react-icons/hi';
 
 const navItems = [
   { path: '/business/dashboard', label: 'Dashboard', icon: HiOutlineViewGrid },
   { path: '/business/queue', label: 'Queue', icon: HiOutlineClipboardList },
+  { path: '/business/messages', label: 'Messages', icon: HiOutlineChatAlt2 },
   { path: '/business/analytics', label: 'Analytics', icon: HiOutlineChartBar },
   { path: '/business/reviews', label: 'Reviews', icon: HiOutlineStar },
   { path: '/business/profile', label: 'Profile', icon: HiOutlineUser },

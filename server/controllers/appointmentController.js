@@ -1,6 +1,9 @@
 const Appointment = require('../models/Appointment');
 const Queue = require('../models/Queue');
+const Business = require('../models/Business');
+const User = require('../models/User');
 const { getTodayRange, generateTokenNumber } = require('../utils/helpers');
+const { notifyUser, formatDate } = require('../services/notificationService');
 
 exports.createAppointment = async (req, res, next) => {
   try {
@@ -19,7 +22,7 @@ exports.createAppointment = async (req, res, next) => {
 
     const tokenNumber = await generateTokenNumber(Queue, business);
 
-    await Queue.create({
+    const queue = await Queue.create({
       business,
       user: req.user._id,
       appointment: appointment._id,
@@ -30,6 +33,27 @@ exports.createAppointment = async (req, res, next) => {
 
     appointment.tokenNumber = tokenNumber;
     await appointment.save();
+
+    const businessDoc = await Business.findById(business).select('name avgServiceTime');
+    const waitingCount = await Queue.countDocuments({
+      business,
+      queueDate: { $gte: start, $lte: getTodayRange().end },
+      status: { $in: ['waiting', 'called'] },
+      tokenNumber: { $lt: tokenNumber },
+    });
+    await notifyUser({
+      user: req.user,
+      business: businessDoc,
+      queue,
+      appointment: appointment._id,
+      type: 'booking_confirmed',
+      templateData: {
+        businessName: businessDoc?.name || 'the business',
+        tokenNumber,
+        peopleAhead: waitingCount,
+        waitTime: waitingCount * (businessDoc?.avgServiceTime || 5),
+      },
+    });
 
     res.status(201).json({ appointment });
   } catch (error) {
@@ -68,13 +92,35 @@ exports.cancelAppointment = async (req, res, next) => {
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
+
+    const businessDoc = await Business.findById(appointment.business).select('name owner');
+    const isOwner = appointment.user.toString() === req.user._id.toString();
+    const isBusinessOwner = businessDoc && businessDoc.owner?.toString() === req.user._id.toString();
+    if (!isOwner && !isBusinessOwner) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
     appointment.status = 'cancelled';
     await appointment.save();
 
-    await Queue.findOneAndUpdate(
+    const queue = await Queue.findOneAndUpdate(
       { appointment: req.params.id },
-      { status: 'cancelled' }
+      { status: 'cancelled' },
+      { new: true }
     );
+
+    const customer = await User.findById(appointment.user);
+    await notifyUser({
+      user: customer,
+      business: businessDoc,
+      queue,
+      appointment: appointment._id,
+      type: 'cancelled',
+      templateData: {
+        businessName: businessDoc?.name || 'the business',
+        tokenNumber: queue?.tokenNumber || appointment.tokenNumber,
+      },
+    });
 
     res.json({ appointment });
   } catch (error) {
@@ -110,6 +156,20 @@ exports.rescheduleAppointment = async (req, res, next) => {
       queue.calledAt = undefined;
       await queue.save();
     }
+
+    const businessDoc = await Business.findById(appointment.business).select('name');
+    await notifyUser({
+      user: req.user,
+      business: businessDoc,
+      queue,
+      appointment: appointment._id,
+      type: 'rescheduled',
+      templateData: {
+        businessName: businessDoc?.name || 'the business',
+        date: formatDate(appointment.date),
+        timeSlot: appointment.timeSlot,
+      },
+    });
 
     res.json({ appointment });
   } catch (error) {

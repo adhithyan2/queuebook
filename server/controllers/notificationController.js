@@ -1,4 +1,6 @@
 const Notification = require('../models/Notification');
+const MessageLog = require('../models/MessageLog');
+const Business = require('../models/Business');
 
 exports.getNotifications = async (req, res, next) => {
   try {
@@ -33,6 +35,30 @@ exports.markAllRead = async (req, res, next) => {
       { read: true }
     );
     res.json({ message: 'All marked as read' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMessageLogs = async (req, res, next) => {
+  try {
+    let filter = {};
+    if (req.user.role === 'business') {
+      const business = await Business.findOne({ owner: req.user._id });
+      if (!business) {
+        return res.json({ logs: [], message: 'No business profile yet' });
+      }
+      filter.business = business._id;
+    } else {
+      filter.user = req.user._id;
+    }
+
+    const logs = await MessageLog.find(filter)
+      .populate('user', 'name phone')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    res.json({ logs });
   } catch (error) {
     next(error);
   }

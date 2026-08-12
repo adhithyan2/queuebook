@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 8 },
   role: { type: String, enum: ['customer', 'business', 'admin'], default: 'customer' },
   phone: { type: String, default: '' },
+  phoneVerified: { type: Boolean, default: false },
+  phoneOtp: { type: String, default: '' },
+  phoneOtpExpires: { type: Date, default: null },
   location: { type: String, default: '' },
   avatar: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
@@ -24,6 +27,8 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 userSchema.methods.toJSON = function() {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.phoneOtp;
+  delete obj.phoneOtpExpires;
   return obj;
 };
 
