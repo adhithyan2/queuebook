@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import {
   HiOutlineViewGrid, HiOutlineCalendar, HiOutlineClipboardList,
-  HiOutlineLocationMarker, HiOutlineBell, HiOutlineUser, HiOutlineCog,
+  HiOutlineLocationMarker, HiOutlineMap, HiOutlineBell, HiOutlineUser, HiOutlineCog,
   HiOutlineSupport, HiOutlineLogout, HiOutlineX, HiOutlinePlus
 } from 'react-icons/hi';
 
@@ -12,6 +12,7 @@ const navItems = [
   { path: '/customer/appointments', label: 'Appointments', icon: HiOutlineCalendar },
   { path: '/customer/queue', label: 'My Queue', icon: HiOutlineClipboardList },
   { path: '/customer/nearby', label: 'Nearby', icon: HiOutlineLocationMarker },
+  { path: '/customer/explore', label: 'Explore', icon: HiOutlineMap },
   { path: '/customer/notifications', label: 'Notifications', icon: HiOutlineBell },
   { path: '/customer/profile', label: 'Profile', icon: HiOutlineUser },
 ];

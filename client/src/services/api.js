@@ -49,6 +49,7 @@ export const queueAPI = {
 export const customerAPI = {
   getDashboard: () => API.get('/customer/dashboard'),
   getNearby: (params) => API.get('/customer/nearby', { params }),
+  getExplore: (params) => API.get('/customer/explore', { params }),
   getReviews: (businessId) => API.get(`/customer/reviews/${businessId}`),
   getBusinessPublic: (businessId) => API.get(`/customer/public/${businessId}`),
   verifyQueueToken: (queueId) => API.get(`/customer/verify/${queueId}`),

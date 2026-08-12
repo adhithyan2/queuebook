@@ -17,6 +17,7 @@ const CustomerDashboardPage = lazy(() => import('../pages/Customer/DashboardPage
 const CustomerAppointmentsPage = lazy(() => import('../pages/Customer/AppointmentsPage'));
 const CustomerQueuePage = lazy(() => import('../pages/Customer/QueuePage'));
 const CustomerNearbyPage = lazy(() => import('../pages/Customer/NearbyPage'));
+const CustomerExplorePage = lazy(() => import('../pages/Customer/ExplorePage'));
 const CustomerBookPage = lazy(() => import('../pages/Customer/BookPage'));
 const CustomerNotificationsPage = lazy(() => import('../pages/Customer/NotificationsPage'));
 const CustomerProfilePage = lazy(() => import('../pages/Customer/ProfilePage'));
@@ -74,6 +75,7 @@ export default function AppRoutes() {
           <Route path="/customer/appointments" element={<CustomerAppointmentsPage />} />
           <Route path="/customer/queue" element={<CustomerQueuePage />} />
           <Route path="/customer/nearby" element={<CustomerNearbyPage />} />
+          <Route path="/customer/explore" element={<CustomerExplorePage />} />
           <Route path="/customer/book/:businessId" element={<CustomerBookPage />} />
           <Route path="/customer/notifications" element={<CustomerNotificationsPage />} />
           <Route path="/customer/profile" element={<CustomerProfilePage />} />
