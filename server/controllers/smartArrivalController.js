@@ -72,8 +72,11 @@ exports.getRecommendation = async (req, res, next) => {
     let travelTimeMin = null;
     const busLat = business.location?.coordinates?.[1];
     const busLng = business.location?.coordinates?.[0];
+    const hasBusinessLocation = !!(
+      busLat !== undefined && busLng !== undefined && (busLat !== 0 || busLng !== 0)
+    );
 
-    if (lat && lng && busLat && busLng && (busLat !== 0 || busLng !== 0)) {
+    if (lat && lng && hasBusinessLocation) {
       const distanceKm = haversineDistance(parseFloat(lat), parseFloat(lng), busLat, busLng);
 
       const googleTime = await getGoogleTravelTime(
@@ -129,7 +132,8 @@ exports.getRecommendation = async (req, res, next) => {
       estimatedLeaveTime: estimatedLeaveTime?.toISOString(),
       estimatedServiceTime: estimatedServiceTime?.toISOString(),
       avgServiceTime: avgTime,
-      hasLocation: !!(lat && lng && busLat && busLng && (busLat !== 0 || busLng !== 0)),
+      hasLocation: !!(lat && lng && hasBusinessLocation),
+      hasBusinessLocation,
       hasGoogleMaps: !!process.env.GOOGLE_MAPS_API_KEY,
     });
   } catch (error) {

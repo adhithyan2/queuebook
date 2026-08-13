@@ -1,5 +1,7 @@
 const Notification = require('../models/Notification');
 const MessageLog = require('../models/MessageLog');
+const { sendUserPush } = require('./pushService');
+const { emitToUser } = require('../socket/queueHandler');
 
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
@@ -108,19 +110,24 @@ function logMessage({ user, business, queue, appointment, channel, to, type, con
 
 async function createInAppNotification({ user, title, message, type, data }) {
   if (!user?._id) return null;
-  return Notification.create({
+  const notification = await Notification.create({
     user: user._id,
     title,
     message,
     type: type === 'appointment' ? 'appointment' : 'queue',
     data: data || {},
   }).catch((err) => console.error('Notification create error:', err.message));
+
+  if (notification) {
+    emitToUser(user._id, 'new-notification', notification.toObject());
+  }
+  return notification;
 }
 
 /**
- * Send a direct mobile notification + in-app notification, then log delivery.
- * Always keeps the in-app Notification channel; mobile is an ADDITIONAL channel
- * sent only to the user's own verified phone number.
+ * Send in-app + push (mobile & browser) notifications, then log SMS delivery.
+ * The in-app Notification channel is always kept; SMS/WhatsApp is sent only to
+ * the user's own verified phone number.
  */
 async function notifyUser({ user, business, queue, appointment, type, templateData, channel }) {
   const safeChannel = channel || SMS_CHANNEL;
@@ -138,6 +145,16 @@ async function notifyUser({ user, business, queue, appointment, type, templateDa
       appointment: appointment?._id,
       channel: safeChannel,
     },
+  });
+
+  const pushData = {
+    queue: queue?._id,
+    business: business?._id,
+    appointment: appointment?._id,
+    type,
+  };
+  await sendUserPush(user, { title, body, data: pushData }).catch((err) => {
+    console.error('Push notification error:', err.message);
   });
 
   const phone = user?.phone;

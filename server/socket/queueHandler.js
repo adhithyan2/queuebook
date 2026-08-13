@@ -1,8 +1,25 @@
+const jwt = require('jsonwebtoken');
 const Queue = require('../models/Queue');
 const { getTodayRange } = require('../utils/helpers');
 
+let ioInstance = null;
+
 const setupSocket = (io) => {
+  ioInstance = io;
+
   io.on('connection', (socket) => {
+    try {
+      const token = socket.handshake.auth?.token;
+      if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded?.id) {
+          socket.join(`user:${decoded.id}`);
+        }
+      }
+    } catch (err) {
+      // ignore invalid tokens; connection still works for public rooms
+    }
+
     socket.on('join-business-room', (businessId) => {
       socket.join(`business:${businessId}`);
     });
@@ -62,4 +79,16 @@ const setupSocket = (io) => {
   });
 };
 
+function emitToUser(userId, event, payload) {
+  if (!ioInstance || !userId) return;
+  ioInstance.to(`user:${userId}`).emit(event, payload);
+}
+
+function emitToBusiness(businessId, event, payload) {
+  if (!ioInstance || !businessId) return;
+  ioInstance.to(`business:${businessId}`).emit(event, payload);
+}
+
 module.exports = setupSocket;
+module.exports.emitToUser = emitToUser;
+module.exports.emitToBusiness = emitToBusiness;

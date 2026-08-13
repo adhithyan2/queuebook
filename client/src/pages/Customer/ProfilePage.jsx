@@ -1,9 +1,92 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { HiOutlineUser, HiOutlineMail, HiOutlineLocationMarker, HiOutlineCheck } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineMail, HiOutlineLocationMarker, HiOutlineCheck, HiBell, HiOutlineBell } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import { customerAPI } from '../../services/api';
 import PhoneVerifyPanel from '../../components/PhoneVerify/PhoneVerifyPanel';
+import { isPushSupported, subscribeToPush, unsubscribeFromPush, getExistingSubscription } from '../../services/pushNotifications';
+
+const PushNotificationCard = () => {
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushMessage, setPushMessage] = useState({ type: '', text: '' });
+
+  useEffect(() => {
+    if (!isPushSupported()) return;
+    getExistingSubscription()
+      .then((sub) => setPushEnabled(Boolean(sub)))
+      .catch(() => setPushEnabled(false));
+  }, []);
+
+  const handleToggle = async () => {
+    setPushLoading(true);
+    setPushMessage({ type: '', text: '' });
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        setPushMessage({ type: 'success', text: 'Browser notifications disabled' });
+      } else {
+        await subscribeToPush();
+        setPushEnabled(true);
+        setPushMessage({ type: 'success', text: "Browser notifications enabled — you'll get queue updates here" });
+      }
+    } catch (error) {
+      setPushMessage({ type: 'error', text: error.message || 'Failed to update notification settings' });
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  if (!isPushSupported()) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Browser Notifications</h2>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">Push notifications are not supported in this browser.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            {pushEnabled ? <HiBell className="w-5 h-5 text-primary" /> : <HiOutlineBell className="w-5 h-5 text-primary" />}
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Browser Notifications</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
+              Get push alerts in this browser when your queue position updates or your turn is called.
+            </p>
+            {pushMessage.text && (
+              <p className={`mt-2 text-xs font-medium ${
+                pushMessage.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+              }`}>
+                {pushMessage.text}
+              </p>
+            )}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={pushLoading}
+          className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
+            pushEnabled ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'
+          }`}
+          aria-label="Toggle browser notifications"
+        >
+          <span
+            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+              pushEnabled ? 'left-[22px]' : 'left-0.5'
+            }`}
+          />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ProfilePage = () => {
   const { user, setUser } = useAuth();
@@ -221,6 +304,8 @@ const ProfilePage = () => {
           </button>
         </form>
       </div>
+
+      <PushNotificationCard />
     </motion.div>
   );
 };

@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [form, setForm] = useState({
     name: '', description: '', phone: '', address: '', city: '',
     website: '', category: '', services: '',
@@ -48,15 +49,18 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    setSaving(true); setSaved(false);
+    setSaving(true); setSaved(false); setSaveError('');
     try {
       await businessAPI.createOrUpdateProfile({
         ...form,
+        category: form.category.trim().toLowerCase(),
         services: form.services.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name })),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch {}
+    } catch (err) {
+      setSaveError(err.response?.data?.message || 'Failed to save. Please check the form and try again.');
+    }
     setSaving(false);
   };
 
@@ -73,6 +77,12 @@ export default function ProfilePage() {
           {saving ? 'Saving...' : saved ? <><HiOutlineCheck className="w-4 h-4" /> Saved</> : 'Save Changes'}
         </motion.button>
       </div>
+
+      {saveError && (
+        <div className="mb-5 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm p-3.5 rounded-xl">
+          {saveError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-5">
@@ -94,7 +104,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Category</label>
-                  <input value={form.category} onChange={e => update('category', e.target.value)} className={inputClass} placeholder="e.g. Barbershop" />
+                  <input value={form.category} onChange={e => update('category', e.target.value)} className={inputClass} placeholder="e.g. Salon, Clinic, Hospital" />
                 </div>
                 <div>
                   <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Services (comma-separated)</label>

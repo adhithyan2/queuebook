@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { smartArrivalAPI } from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
@@ -12,10 +12,10 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatCountdown(minutes) {
-  if (minutes === null || minutes === undefined) return null;
-  const m = Math.max(0, Math.floor(minutes));
-  const s = Math.round((minutes - m) * 60);
+function formatCountdown(totalSeconds) {
+  if (totalSeconds === null || totalSeconds === undefined || totalSeconds <= 0) return null;
+  const m = Math.floor(totalSeconds / 60);
+  const s = Math.round(totalSeconds % 60);
   return { m, s };
 }
 
@@ -25,6 +25,7 @@ export default function SmartArrivalWidget() {
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [countdown, setCountdown] = useState(null);
+  const leaveByRef = useRef(null);
 
   const fetchRecommendation = useCallback(() => {
     const params = {};
@@ -33,7 +34,15 @@ export default function SmartArrivalWidget() {
       params.lng = userLocation.lng;
     }
     smartArrivalAPI.getRecommendation(params)
-      .then(res => setData(res.data))
+      .then(res => {
+        setData(res.data);
+        if (res.data?.active && res.data.leaveInMinutes !== null) {
+          leaveByRef.current = Date.now() + res.data.leaveInMinutes * 60000;
+        } else {
+          leaveByRef.current = null;
+        }
+        setCountdown(formatCountdown(res.data?.active ? res.data.leaveInMinutes : null));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [userLocation]);
@@ -62,10 +71,13 @@ export default function SmartArrivalWidget() {
   }, [socket, data?.active, fetchRecommendation]);
 
   useEffect(() => {
-    if (!data?.active || data.leaveInMinutes === null) return;
-    const interval = setInterval(() => {
-      setCountdown(formatCountdown(data.leaveInMinutes));
-    }, 1000);
+    if (!data?.active || data.leaveInMinutes === null || !leaveByRef.current) return;
+    const tick = () => {
+      const remaining = (leaveByRef.current - Date.now()) / 1000;
+      setCountdown(formatCountdown(remaining));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [data?.active, data?.leaveInMinutes]);
 
@@ -213,7 +225,7 @@ export default function SmartArrivalWidget() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="text-center mb-4"
             >
-              {data.recommendation === 'leave_now' ? (
+              {data.recommendation === 'leave_now' || (leaveByRef.current && !countdown) ? (
                 <p className="text-3xl font-extrabold text-red-600 animate-pulse">GO NOW!</p>
               ) : (
                 <p className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
@@ -253,7 +265,16 @@ export default function SmartArrivalWidget() {
         </div>
       </div>
 
-      {!hasLocation && (
+      {!data.hasBusinessLocation && (
+        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <HiOutlineLocationMarker className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">This business hasn't set its location yet, so live travel time is unavailable.</p>
+          </div>
+        </div>
+      )}
+
+      {data.hasBusinessLocation && !hasLocation && (
         <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-3 mb-4">
           <div className="flex items-center gap-2">
             <HiOutlineLocationMarker className="w-4 h-4 text-blue-500 flex-shrink-0" />

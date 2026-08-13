@@ -20,12 +20,14 @@ async function notifyUpcomingUsers(businessId, businessName, avgServiceTime, lim
       user: q.user,
       business: businessId,
       queue: q,
-      type: 'position_update',
-      templateData: {
-        businessName,
-        peopleAhead: index,
-        waitTime: index * (avgServiceTime || 5),
-      },
+      type: index === 0 ? 'turn_coming' : 'position_update',
+      templateData: index === 0
+        ? { businessName, minutes: Math.max(2, avgServiceTime || 5) }
+        : {
+            businessName,
+            peopleAhead: index,
+            waitTime: index * (avgServiceTime || 5),
+          },
     });
   }
 }
@@ -244,7 +246,14 @@ exports.getProfile = async (req, res, next) => {
 
 exports.createOrUpdateProfile = async (req, res, next) => {
   try {
-    const { name, description, category, address, phone, email, services, timeSlots, avgServiceTime, location, queueSettings } = req.body;
+    const { name, description, category, address, phone, email, services, timeSlots, openingHours, avgServiceTime, location, queueSettings } = req.body;
+
+    const derivedTimeSlots = Array.isArray(openingHours) && openingHours.length > 0
+      ? (() => {
+          const firstOpen = openingHours.find((h) => h && !h.closed && h.open && h.close);
+          return firstOpen ? { open: firstOpen.open, close: firstOpen.close, interval: timeSlots?.interval || 30 } : undefined;
+        })()
+      : undefined;
 
     let business = await Business.findOne({ owner: req.user._id });
 
@@ -258,6 +267,8 @@ exports.createOrUpdateProfile = async (req, res, next) => {
       business.avgServiceTime = avgServiceTime ?? business.avgServiceTime;
       if (services) business.services = services;
       if (timeSlots) business.timeSlots = timeSlots;
+      if (derivedTimeSlots) business.timeSlots = { ...business.timeSlots, ...derivedTimeSlots };
+      if (openingHours) business.openingHours = openingHours;
       if (location) business.location = location;
       if (queueSettings) business.queueSettings = { ...business.queueSettings, ...queueSettings };
       await business.save();
@@ -268,7 +279,8 @@ exports.createOrUpdateProfile = async (req, res, next) => {
       owner: req.user._id,
       name, description, category, address, phone, email,
       services: services || [],
-      timeSlots: timeSlots || { open: '09:00', close: '17:00', interval: 30 },
+      timeSlots: timeSlots || derivedTimeSlots || { open: '09:00', close: '17:00', interval: 30 },
+      openingHours: openingHours || [],
       avgServiceTime: avgServiceTime || 5,
       location: location || { type: 'Point', coordinates: [0, 0] },
       queueSettings: queueSettings || { tokenPrefix: 'Q', maxDailyTokens: 100, autoAssignToken: true, maxQueuePerCustomer: 1 },

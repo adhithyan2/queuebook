@@ -4,7 +4,7 @@ const businessSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true, trim: true },
   description: { type: String, default: '' },
-  category: { type: String, enum: ['hospital', 'clinic', 'salon', 'restaurant', 'office', 'laboratory'], required: true },
+  category: { type: String, required: true, lowercase: true, trim: true },
   address: { type: String, default: '' },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
@@ -14,6 +14,12 @@ const businessSchema = new mongoose.Schema({
   email: { type: String, default: '' },
   services: [{ name: String, duration: Number, price: Number }],
   timeSlots: { open: String, close: String, interval: { type: Number, default: 30 } },
+  openingHours: [{
+    day: { type: String, default: '' },
+    open: { type: String, default: '09:00' },
+    close: { type: String, default: '17:00' },
+    closed: { type: Boolean, default: false },
+  }],
   avgServiceTime: { type: Number, default: 5 },
   queueSettings: {
     tokenPrefix: { type: String, default: 'Q' },

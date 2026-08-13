@@ -5,6 +5,7 @@ import { SocketProvider } from './context/SocketContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AppRoutes from './routes/AppRoutes';
 import IntroScreen from './components/Intro/IntroScreen';
+import NotificationToasts from './components/notification/NotificationToasts';
 
 export default function App() {
   const [introDone, setIntroDone] = useState(() => {
@@ -19,6 +20,7 @@ export default function App() {
         <ThemeProvider>
           <AuthProvider>
             <SocketProvider>
+              <NotificationToasts />
               <div style={{
                 opacity: introDone ? 1 : 0,
                 pointerEvents: introDone ? 'auto' : 'none',

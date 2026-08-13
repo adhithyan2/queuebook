@@ -10,7 +10,13 @@ const userSchema = new mongoose.Schema({
   phoneVerified: { type: Boolean, default: false },
   phoneOtp: { type: String, default: '' },
   phoneOtpExpires: { type: Date, default: null },
-  location: { type: String, default: '' },
+  pushTokens: [{
+    token: { type: String, required: true },
+    platform: { type: String, enum: ['expo', 'web'], default: 'expo' },
+    deviceName: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now },
+  }],
+  location: { type: mongoose.Schema.Types.Mixed, default: null },
   avatar: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });

@@ -2,6 +2,48 @@ const Notification = require('../models/Notification');
 const MessageLog = require('../models/MessageLog');
 const Business = require('../models/Business');
 
+exports.registerPushToken = async (req, res, next) => {
+  try {
+    const { token, platform, deviceName } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: 'Push token is required' });
+    }
+
+    const safePlatform = platform === 'web' ? 'web' : 'expo';
+    const tokens = req.user.pushTokens || [];
+    const existing = tokens.find((t) => t.token === token);
+
+    if (existing) {
+      existing.platform = safePlatform;
+      existing.deviceName = deviceName || existing.deviceName;
+      existing.createdAt = new Date();
+    } else {
+      tokens.push({
+        token,
+        platform: safePlatform,
+        deviceName: deviceName || '',
+      });
+    }
+
+    req.user.pushTokens = tokens;
+    await req.user.save();
+    res.json({ message: 'Push token registered', count: tokens.length });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.unregisterPushToken = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    req.user.pushTokens = (req.user.pushTokens || []).filter((t) => t.token !== token);
+    await req.user.save();
+    res.json({ message: 'Push token removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getNotifications = async (req, res, next) => {
   try {
     const notifications = await Notification.find({ user: req.user._id })

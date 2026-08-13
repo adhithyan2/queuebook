@@ -16,7 +16,7 @@ const server = http.createServer(app);
 
 const CLIENT_URL = process.env.NODE_ENV === 'production'
   ? process.env.CLIENT_URL
-  : 'http://localhost:3000';
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4173'];
 
 const io = new Server(server, {
   cors: {
