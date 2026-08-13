@@ -3,7 +3,8 @@ const Queue = require('../models/Queue');
 const Business = require('../models/Business');
 const User = require('../models/User');
 const { getTodayRange, generateTokenNumber } = require('../utils/helpers');
-const { notifyUser, formatDate } = require('../services/notificationService');
+const { notifyUser, formatDate, createInAppNotification } = require('../services/notificationService');
+const { emitToBusiness } = require('../socket/queueHandler');
 
 exports.createAppointment = async (req, res, next) => {
   try {
@@ -22,7 +23,7 @@ exports.createAppointment = async (req, res, next) => {
 
     const tokenNumber = await generateTokenNumber(Queue, business);
 
-    const businessDoc = await Business.findById(business).select('name avgServiceTime');
+    const businessDoc = await Business.findById(business).select('name avgServiceTime owner');
     const waitingCount = await Queue.countDocuments({
       business,
       queueDate: { $gte: start, $lte: getTodayRange().end },
@@ -57,6 +58,26 @@ exports.createAppointment = async (req, res, next) => {
         waitTime: waitingCount * (businessDoc?.avgServiceTime || 5),
       },
     });
+
+    if (businessDoc?.owner) {
+      await createInAppNotification({
+        user: { _id: businessDoc.owner },
+        title: 'New booking received',
+        message: `${req.user.name} booked ${service}${timeSlot ? ` at ${timeSlot}` : ''} — Token ${tokenNumber}`,
+        type: 'appointment',
+        data: {
+          queue: queue._id,
+          business: businessDoc._id,
+          appointment: appointment._id,
+          type: 'booking_confirmed',
+        },
+      });
+      emitToBusiness(businessDoc._id, 'booking-notification', {
+        message: 'New booking received',
+        timestamp: new Date(),
+      });
+      emitToBusiness(businessDoc._id, 'queue-refresh', { refresh: true, timestamp: new Date() });
+    }
 
     res.status(201).json({ appointment });
   } catch (error) {

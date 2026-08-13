@@ -14,6 +14,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [detecting, setDetecting] = useState(false);
+  const [location, setLocation] = useState(null);
   const [form, setForm] = useState({
     name: '', description: '', phone: '', address: '', city: '',
     website: '', category: '', services: '',
@@ -34,10 +36,45 @@ export default function ProfilePage() {
             : '',
           openingHours: p.openingHours?.length ? p.openingHours : prev.openingHours,
         }));
+        const coords = p.location?.coordinates;
+        if (Array.isArray(coords) && coords.length === 2 && (coords[0] !== 0 || coords[1] !== 0)) {
+          setLocation({ latitude: coords[1], longitude: coords[0] });
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setSaveError('Geolocation is not supported by your browser');
+      return;
+    }
+    setDetecting(true);
+    setSaveError('');
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await response.json();
+          setLocation({ latitude, longitude, address: data.display_name });
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+        } catch {
+          setSaveError('Failed to get address from coordinates');
+        } finally {
+          setDetecting(false);
+        }
+      },
+      () => {
+        setDetecting(false);
+        setSaveError('Failed to detect location. Please enable location access.');
+      }
+    );
+  };
 
   const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
   const updateHour = (index, key, val) => {
@@ -55,6 +92,7 @@ export default function ProfilePage() {
         ...form,
         category: form.category.trim().toLowerCase(),
         services: form.services.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name })),
+        location: location ? { type: 'Point', coordinates: [location.longitude, location.latitude] } : undefined,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -137,6 +175,22 @@ export default function ProfilePage() {
               <div>
                 <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">City</label>
                 <input value={form.city} onChange={e => update('city', e.target.value)} className={inputClass} placeholder="New York" />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block">Location</label>
+                <div className="flex items-center gap-3">
+                  <motion.button type="button" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                    onClick={handleDetectLocation} disabled={detecting}
+                    className="h-11 px-4 rounded-xl bg-primary/10 text-primary text-sm font-semibold flex items-center gap-2 disabled:opacity-50 transition-all">
+                    <HiOutlineMapPin className="w-4 h-4" />
+                    {detecting ? 'Detecting...' : 'Detect Location'}
+                  </motion.button>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                    {location
+                      ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}${location.address ? ` — ${location.address.split(',').slice(0, 2).join(',')}` : ''}`
+                      : 'No location set yet. Detect or enter it to enable live travel time in Smart Arrival.'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
