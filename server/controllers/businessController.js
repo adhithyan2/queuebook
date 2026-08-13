@@ -41,11 +41,19 @@ exports.getDashboard = async (req, res, next) => {
 
     const { start, end } = getTodayRange();
 
-    const todayQueue = await Queue.find({
+    const todayQueue = (await Queue.find({
       business: business._id,
       queueDate: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
-    }).populate('user', 'name email').sort({ tokenNumber: 1 });
+    })
+      .populate('user', 'name email')
+      .populate('appointment', 'service timeSlot')
+      .sort({ tokenNumber: 1 }))
+      .map((q) => ({
+        ...q.toObject(),
+        service: q.appointment?.service || null,
+        timeSlot: q.appointment?.timeSlot || null,
+      }));
 
     const stats = {
       total: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: { $ne: 'cancelled' } }),

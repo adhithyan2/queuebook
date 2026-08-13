@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused, useRouter } from 'expo-router';
+import QRCode from 'react-native-qrcode-svg';
 
 import { Button, Card } from '@/components/ui/form';
 import { api } from '@/services/api';
+import { joinQueueRoom, subscribe } from '@/services/socket';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -14,6 +16,44 @@ const STATUS_LABEL: Record<string, string> = {
   skipped: 'Skipped',
   cancelled: 'Cancelled',
 };
+
+/**
+ * Renders the real queue scan QR. The payload is the same format the web app
+ * uses (`.../queue/<id>/scan`) so the business desk scanner can read it.
+ * Includes loading and error states instead of a blank/empty box.
+ */
+function QueueQR({ queueId }: { queueId?: string }) {
+  const theme = useTheme();
+  const [ready, setReady] = useState(Boolean(queueId));
+
+  // Adjust state during render when queueId becomes available (documented
+  // React pattern) — avoids an effect for a synchronously-rendered QR.
+  if (Boolean(queueId) !== ready) {
+    setReady(Boolean(queueId));
+  }
+
+  if (!queueId) {
+    return (
+      <View style={[styles.qrFallback, { backgroundColor: theme.backgroundElement }]}>
+        <Text style={{ color: theme.danger, fontSize: 12, textAlign: 'center' }}>
+          QR code unavailable for this queue.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <View style={[styles.qrFallback, { backgroundColor: theme.backgroundElement }]}>
+        <ActivityIndicator color={theme.tint} />
+      </View>
+    );
+  }
+
+  return (
+    <QRCode value={`queuebook://queue/${queueId}/scan`} size={150} color="#0f172a" backgroundColor="#ffffff" ecl="M" />
+  );
+}
 
 export default function QueueScreen() {
   const theme = useTheme();
@@ -27,7 +67,9 @@ export default function QueueScreen() {
   const load = useCallback(async () => {
     try {
       const data = await api.queue.my();
-      setQueues(data.queues || []);
+      const queues = data.queues || [];
+      setQueues(queues);
+      queues.forEach((q) => joinQueueRoom(q._id));
     } catch (err) {
       console.warn('Queue load error:', err);
     } finally {
@@ -44,6 +86,13 @@ export default function QueueScreen() {
       if (timer.current) clearInterval(timer.current);
     };
   }, [isFocused, load]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe('position-update', () => {
+      load();
+    });
+    return unsubscribe;
+  }, [load]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -121,6 +170,17 @@ export default function QueueScreen() {
                 onPress={() => handleLeave(active._id)}
                 style={{ marginTop: Spacing.three }}
               />
+            )}
+
+            {['waiting', 'called'].includes(active.status) && (
+              <View style={[styles.qrSection, { borderTopColor: theme.border }]}>
+                <View style={styles.qrBox}>
+                  <QueueQR queueId={active._id} />
+                </View>
+                <Text style={{ color: theme.textSecondary, fontSize: 12, textAlign: 'center', marginTop: Spacing.two }}>
+                  Show this QR at the desk to verify your spot.
+                </Text>
+              </View>
             )}
           </Card>
 
@@ -236,5 +296,24 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  qrSection: {
+    alignItems: 'center',
+    marginTop: Spacing.three,
+    paddingTop: Spacing.three,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  qrBox: {
+    padding: Spacing.two,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+  },
+  qrFallback: {
+    width: 150,
+    height: 150,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.two,
   },
 });

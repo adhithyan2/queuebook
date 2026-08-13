@@ -1,8 +1,10 @@
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
 const getTodayRange = () => {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const istNow = new Date(now.getTime() + IST_OFFSET_MS);
+  const start = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()) - IST_OFFSET_MS);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
   return { start, end };
 };
 

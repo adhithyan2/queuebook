@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Button, Card, TextField } from '@/components/ui/form';
 import { useAuth } from '@/context/auth';
 import { api } from '@/services/api';
-import { disablePush, getPushToken, isPushEnabled } from '@/services/push';
+import { disablePush, getPushToken, isPushEnabled, isPushSupported } from '@/services/push';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -43,9 +43,17 @@ export default function ProfileScreen() {
     setPushBusy(true);
     try {
       if (value) {
+        if (!isPushSupported()) {
+          Alert.alert(
+            'Push unavailable in Expo Go',
+            'Android remote push notifications require a development build (Expo Go removed them in SDK 53+). Sign-in, explore, booking, queue and notifications still work normally here.'
+          );
+          setPushOn(false);
+          return;
+        }
         const token = await getPushToken();
         if (!token) {
-          Alert.alert('Notifications unavailable', 'Permission was denied. Enable notifications in your device settings.');
+          Alert.alert('Notifications unavailable', 'Permission was denied or the device could not be registered. Enable notifications in your device settings and try again.');
           setPushOn(false);
           return;
         }
@@ -105,6 +113,11 @@ export default function ProfileScreen() {
             <Text style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>
               Get alerts on this device when your queue position updates or your turn is called.
             </Text>
+            {!isPushSupported() ? (
+              <Text style={{ color: theme.danger, fontSize: 12, marginTop: 4 }}>
+                Remote push is disabled in Expo Go on Android. It works in a development build.
+              </Text>
+            ) : null}
           </View>
           <Switch
             value={pushOn}

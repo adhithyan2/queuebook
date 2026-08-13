@@ -115,7 +115,7 @@ async function createInAppNotification({ user, title, message, type, data }) {
     title,
     message,
     type: type === 'appointment' ? 'appointment' : 'queue',
-    data: data || {},
+    data: { ...(data || {}), type },
   }).catch((err) => console.error('Notification create error:', err.message));
 
   if (notification) {

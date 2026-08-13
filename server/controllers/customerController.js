@@ -56,7 +56,7 @@ exports.getDashboard = async (req, res, next) => {
     const upcomingAppointment = await Appointment.findOne({
       user: req.user._id,
       status: { $in: ['pending', 'confirmed'] },
-      date: { $gte: new Date() },
+      date: { $gte: start },
     }).populate('business', 'name category address phone').sort({ date: 1 });
 
     const activeQueue = await Queue.findOne({

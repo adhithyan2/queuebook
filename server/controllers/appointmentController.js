@@ -22,18 +22,6 @@ exports.createAppointment = async (req, res, next) => {
 
     const tokenNumber = await generateTokenNumber(Queue, business);
 
-    const queue = await Queue.create({
-      business,
-      user: req.user._id,
-      appointment: appointment._id,
-      tokenNumber,
-      queueDate: start,
-      status: 'waiting',
-    });
-
-    appointment.tokenNumber = tokenNumber;
-    await appointment.save();
-
     const businessDoc = await Business.findById(business).select('name avgServiceTime');
     const waitingCount = await Queue.countDocuments({
       business,
@@ -41,6 +29,21 @@ exports.createAppointment = async (req, res, next) => {
       status: { $in: ['waiting', 'called'] },
       tokenNumber: { $lt: tokenNumber },
     });
+
+    const queue = await Queue.create({
+      business,
+      user: req.user._id,
+      appointment: appointment._id,
+      tokenNumber,
+      queueDate: start,
+      status: 'waiting',
+      position: waitingCount + 1,
+      estimatedWaitTime: waitingCount * (businessDoc?.avgServiceTime || 5),
+    });
+
+    appointment.tokenNumber = tokenNumber;
+    await appointment.save();
+
     await notifyUser({
       user: req.user,
       business: businessDoc,

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeCanvas } from 'qrcode.react';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
-import { HiOutlineQrCode } from 'react-icons/hi2';
+import { HiOutlineQrCode, HiOutlineArrowDownTray } from 'react-icons/hi2';
 import { useSocket } from '../../context/SocketContext';
 import { queueAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
@@ -11,6 +11,19 @@ const QueuePage = () => {
   const [queues, setQueues] = useState([]);
   const [loading, setLoading] = useState(true);
   const socket = useSocket();
+  const qrCanvasRefs = useRef({});
+
+  const downloadQR = (queue) => {
+    const canvas = qrCanvasRefs.current[queue._id];
+    if (!canvas) return;
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `queuebook-token-${queue.tokenNumber || queue._id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   useEffect(() => {
     fetchQueues();
@@ -159,25 +172,50 @@ const QueuePage = () => {
               </div>
 
               <div className="mt-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
-                <div className="bg-white dark:bg-zinc-900 rounded-lg p-2 flex-shrink-0">
-                  <QRCodeCanvas
-                    value={`${window.location.origin}/queue/${queue._id}/scan`}
-                    size={72}
-                    level="M"
-                    bgColor="#ffffff"
-                    fgColor="#0f172a"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    <HiOutlineQrCode className="w-3.5 h-3.5 text-primary" />
-                    Check-in Token
+                {queue._id ? (
+                  <>
+                    <div className="bg-white dark:bg-zinc-900 rounded-lg p-2 flex-shrink-0">
+                      <QRCodeCanvas
+                        value={`${window.location.origin}/queue/${queue._id}/scan`}
+                        size={72}
+                        level="M"
+                        bgColor="#ffffff"
+                        fgColor="#0f172a"
+                        ref={(node) => {
+                          if (node) qrCanvasRefs.current[queue._id] = node;
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        <HiOutlineQrCode className="w-3.5 h-3.5 text-primary" />
+                        Check-in Token
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                        Show this QR to the {queue.business?.name || 'business'} desk to verify your spot.
+                      </p>
+                      <p className="text-[10px] font-mono text-zinc-400 mt-1 truncate">Token Q{queue.tokenNumber}</p>
+                      <button
+                        onClick={() => downloadQR(queue)}
+                        className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+                      >
+                        <HiOutlineArrowDownTray className="w-3.5 h-3.5" /> Download QR
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                      <HiOutlineQrCode className="w-6 h-6 text-zinc-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">QR unavailable</p>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        No check-in token is available for this queue yet.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                    Show this QR to the {queue.business?.name || 'business'} desk to verify your spot.
-                  </p>
-                  <p className="text-[10px] font-mono text-zinc-400 mt-1 truncate">Token Q{queue.tokenNumber}</p>
-                </div>
+                )}
               </div>
             </div>
           ))}

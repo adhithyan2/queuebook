@@ -4,6 +4,7 @@ import { useIsFocused } from 'expo-router';
 
 import { Card } from '@/components/ui/form';
 import { api } from '@/services/api';
+import { subscribe } from '@/services/socket';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -38,6 +39,13 @@ export default function NotificationsScreen() {
       load();
     }
   }, [isFocused, load]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe('new-notification', () => {
+      load();
+    });
+    return unsubscribe;
+  }, [load]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

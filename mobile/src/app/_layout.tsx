@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/context/auth';
 import { onNotificationTap, setupForegroundHandler } from '@/services/push';
+import { connectSocket, disconnectSocket, subscribe } from '@/services/socket';
 import { useTheme } from '@/hooks/use-theme';
 
 function RootNavigator() {
@@ -21,6 +22,23 @@ function RootNavigator() {
     });
     return () => unsubscribe?.();
   }, [router]);
+
+  useEffect(() => {
+    if (!user) {
+      disconnectSocket();
+      return;
+    }
+    connectSocket();
+    const unsubscribe = subscribe('new-notification', (payload) => {
+      if (payload?.data?.type === 'turn_now') {
+        Alert.alert("It's your turn!", payload.message || 'Please proceed to the service desk.', [
+          { text: 'View Queue', onPress: () => router.push('/(tabs)/queue') },
+          { text: 'OK', style: 'cancel' },
+        ]);
+      }
+    });
+    return () => unsubscribe();
+  }, [user, router]);
 
   if (loading) {
     return (
