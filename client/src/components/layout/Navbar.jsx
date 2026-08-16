@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Avatar from '../ui/Avatar';
-import { HiOutlineSearch, HiOutlineBell, HiOutlineUser, HiOutlineCog, HiOutlineLogout, HiOutlineMenu, HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
+import { HiOutlineSearch, HiOutlineBell, HiOutlineUser, HiOutlineLogout, HiOutlineMenu, HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
 
 export default function Navbar({ onMenuClick, onToggleSidebar }) {
   const { user, logout } = useAuth();
@@ -29,6 +29,8 @@ export default function Navbar({ onMenuClick, onToggleSidebar }) {
         >
           <HiOutlineMenu className="w-5 h-5" />
         </button>
+
+        <img src="/queuebook-logo.png" alt="QueueBook" className="h-8 w-auto object-contain bg-white rounded-lg px-2 py-1" />
 
         <div className="flex items-center gap-1">
           <button className="p-2 rounded-xl text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
@@ -66,13 +68,9 @@ export default function Navbar({ onMenuClick, onToggleSidebar }) {
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{user?.name}</p>
                     <p className="text-xs text-zinc-400 mt-0.5">{user?.email}</p>
                   </div>
-                  <Link to="/customer/profile" onClick={() => setShowDropdown(false)}
+                  <Link to={user?.role === 'business' ? '/business/profile' : '/customer/profile'} onClick={() => setShowDropdown(false)}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                     <HiOutlineUser className="w-4 h-4" /> Profile
-                  </Link>
-                  <Link to="/settings" onClick={() => setShowDropdown(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                    <HiOutlineCog className="w-4 h-4" /> Settings
                   </Link>
                   <div className="border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-1">
                     <button onClick={() => { setShowDropdown(false); logout(); }}

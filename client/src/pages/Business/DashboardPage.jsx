@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Html5Qrcode } from 'html5-qrcode';
 import { businessAPI, customerAPI } from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
-import { useAuth } from '../../context/AuthContext';
+import CompleteModal from '../../components/business/CompleteModal';
 import {
-  HiOutlinePlay, HiOutlinePause, HiOutlineCheck, HiOutlineXMark,
+  HiOutlineCheck, HiOutlineXMark,
   HiOutlinePlus, HiOutlineUsers, HiOutlineClock, HiOutlineStar,
   HiOutlineArrowPath, HiOutlineMegaphone, HiOutlineCalendar,
   HiOutlineShieldCheck, HiOutlineShieldExclamation, HiOutlineQrCode,
+  HiOutlineBanknotes, HiOutlineCurrencyRupee, HiOutlineUserGroup,
+  HiOutlineSun, HiOutlinePause,
 } from 'react-icons/hi2';
 
 function useTimer(isRunning) {
@@ -22,25 +24,31 @@ function useTimer(isRunning) {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+function parseQueueToken(text) {
+  const m = String(text).match(/(?:queuebook|https?):\/\/[^\s]*\/(?:queue|verify)\/([a-f0-9]{24})(?:\/scan)?/i);
+  return m ? m[1] : null;
+}
+
 export default function BusinessDashboardPage() {
   const socket = useSocket();
-  const { user } = useAuth();
   const [dashboard, setDashboard] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWalkIn, setShowWalkIn] = useState(false);
   const [walkInName, setWalkInName] = useState('');
   const [adding, setAdding] = useState(false);
-  const [queuePaused, setQueuePaused] = useState(false);
+  const [calling, setCalling] = useState(false);
+  const [skippingId, setSkippingId] = useState(null);
+  const [completeTarget, setCompleteTarget] = useState(null);
+  const [completing, setCompleting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [scanned, setScanned] = useState(null);
   const scannerRef = useRef(null);
 
   const loadDashboard = () => {
-    Promise.all([businessAPI.getDashboard(), businessAPI.getAnalytics()])
-      .then(([d, a]) => {
-        setDashboard(d.data); setAnalytics(a.data);
+    businessAPI.getDashboard()
+      .then((d) => {
+        setDashboard(d.data);
         if (d.data.business?._id) customerAPI.getReviews(d.data.business._id).then(r => setReviews(r.data.reviews || [])).catch(() => {});
       }).catch(() => {}).finally(() => setLoading(false));
   };
@@ -56,9 +64,42 @@ export default function BusinessDashboardPage() {
   }, [socket, dashboard?.business?._id]);
 
   const refresh = async () => { try { const r = await businessAPI.getDashboard(); setDashboard(r.data); } catch {} };
-  const handleCallNext = async () => { try { await businessAPI.callNext(); await refresh(); } catch (e) { alert(e.response?.data?.message || 'No one in queue'); } };
-  const handleSkip = async (id) => { try { await businessAPI.skipCustomer(id); await refresh(); } catch {} };
-  const handleComplete = async (id) => { try { await businessAPI.completeAppointment(id); await refresh(); } catch {} };
+  const handleCallNext = async () => {
+    if (calling) return;
+    setCalling(true);
+    try { await businessAPI.callNext(); await refresh(); }
+    catch (e) { alert(e.response?.data?.message || 'No one in queue'); }
+    finally { setCalling(false); }
+  };
+  const handleSkip = async (id) => {
+    if (skippingId) return;
+    setSkippingId(id);
+    try { await businessAPI.skipCustomer(id); await refresh(); }
+    catch (e) { alert(e.response?.data?.message || 'Could not skip this customer'); }
+    finally { setSkippingId(null); }
+  };
+  const handleComplete = (id, item) => setCompleteTarget({ id, item });
+  const confirmComplete = async (paid) => {
+    if (!completeTarget || completing) return;
+    setCompleting(true);
+    try {
+      await businessAPI.completeAppointment(completeTarget.id, { paid });
+      setCompleteTarget(null);
+      await refresh();
+    } catch (e) {
+      alert(e.response?.data?.message || 'Could not complete the appointment');
+    } finally { setCompleting(false); }
+  };
+
+  const handleVerifyPayment = async (appointmentId, status) => {
+    try {
+      await businessAPI.verifyAppointmentPayment(appointmentId, { status });
+      await refresh();
+    } catch (e) {
+      alert(e.response?.data?.message || 'Could not update payment');
+    }
+  };
+
   const handleAddWalkIn = async () => {
     if (!walkInName.trim()) return; setAdding(true);
     try { await businessAPI.addWalkIn({ name: walkInName.trim() }); setWalkInName(''); setShowWalkIn(false); await refresh(); } catch {}
@@ -89,10 +130,10 @@ export default function BusinessDashboardPage() {
           async (decodedText) => {
             await scanner.stop();
             scannerRef.current = null;
-            const match = decodedText.match(/\/queue\/([a-f0-9]{24})\/scan/i) || decodedText.match(/\/verify\/([a-f0-9]{24})/i);
-            if (!match) { setScanned({ error: 'Not a QueueBook check-in token' }); return; }
+            const queueId = parseQueueToken(decodedText);
+            if (!queueId) { setScanned({ error: 'Not a QueueBook check-in token' }); return; }
             try {
-              const r = await customerAPI.verifyQueueToken(match[1]);
+              const r = await customerAPI.verifyQueueToken(queueId);
               setScanned(r.data.queue);
             } catch (e) {
               setScanned({ error: e.response?.data?.message || 'Token verification failed' });
@@ -106,7 +147,8 @@ export default function BusinessDashboardPage() {
     }, 150);
   };
 
-  const { queue = [], business } = dashboard || {};
+  const { queue = [], business, paymentSummary, staffAvailability = [], pendingVerifications = [] } = dashboard || {};
+  const liveSummary = dashboard?.liveSummary || {};
   const called = queue.find(q => q.status === 'called');
   const waiting = queue.filter(q => q.status === 'waiting');
   const completed = queue.filter(q => q.status === 'completed');
@@ -147,9 +189,9 @@ export default function BusinessDashboardPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{business?.name || 'Dashboard'}</h1>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${queuePaused ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${queuePaused ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
-            {queuePaused ? 'Paused' : 'Open'}
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${liveSummary?.isOpen === false ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${liveSummary?.isOpen === false ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
+            {liveSummary?.isOpen === false ? 'Closed' : 'Open'}
           </span>
         </div>
       </div>
@@ -176,15 +218,16 @@ export default function BusinessDashboardPage() {
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">{called.user?.name || called.walkInName || 'Unknown'}</h3>
                 <div className="flex items-center gap-2 mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
                   {called.service && <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />{called.service}</span>}
+                  {called.staffName && <span className="flex items-center gap-1"><HiOutlineUserGroup className="w-3.5 h-3.5" />{called.staffName}</span>}
                   {called.timeSlot && <span className="flex items-center gap-1"><HiOutlineCalendar className="w-3.5 h-3.5" />{called.timeSlot}</span>}
                 </div>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleComplete(called._id)} disabled={notApproved}
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleComplete(called._id, called)} disabled={notApproved || completing}
                   className="h-10 px-5 rounded-xl bg-emerald-500 text-white text-sm font-semibold flex items-center gap-1.5 hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   <HiOutlineCheck className="w-4 h-4" /> Complete
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleSkip(called._id)} disabled={notApproved}
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleSkip(called._id)} disabled={notApproved || skippingId === called._id}
                   className="h-10 px-5 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-sm font-semibold flex items-center gap-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   <HiOutlineXMark className="w-4 h-4" /> Skip
                 </motion.button>
@@ -221,28 +264,198 @@ export default function BusinessDashboardPage() {
               <HiOutlineClock className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{business?.avgServiceTime || 5}m</p>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Avg Wait</p>
+              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                {business?.avgServiceTime ? `${business.avgServiceTime}m` : '—'}
+              </p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Avg Service Time</p>
             </div>
           </div>
         </div>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <HiOutlineUserGroup className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Staff Today</h2>
+                <p className="text-[11px] text-zinc-400">Live duty status from availability schedules</p>
+              </div>
+            </div>
+            {staffAvailability.length > 0 && (
+              <span className="text-[11px] font-semibold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full">
+                {staffAvailability.filter((s) => s.status === 'on-duty').length} on duty
+              </span>
+            )}
+          </div>
+          {staffAvailability.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {staffAvailability.map((s) => {
+                const styles = {
+                  'on-duty': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
+                  break: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+                  upcoming: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
+                  off: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+                  inactive: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+                }[s.status] || 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400';
+                return (
+                  <div key={String(s.id)} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
+                    <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-500 flex-shrink-0">
+                      {s.name?.charAt(0)?.toUpperCase() || 'S'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">{s.name}</p>
+                      <p className="text-[10px] text-zinc-400 truncate">{s.role || s.hours || '—'}</p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${styles}`}>
+                      {s.status === 'on-duty' && <HiOutlineSun className="w-3 h-3" />}
+                      {s.status === 'break' && <HiOutlinePause className="w-3 h-3" />}
+                      {s.status === 'on-duty' && 'On duty'}
+                      {s.status === 'break' && `On break${s.breakWindow ? ` ${s.breakWindow}` : ''}`}
+                      {s.status === 'upcoming' && `Starts ${s.hours?.split('–')[0] || 'soon'}`}
+                      {s.status === 'off' && 'Off'}
+                      {s.status === 'inactive' && 'Inactive'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <HiOutlineUserGroup className="w-6 h-6 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">No staff added yet</p>
+              <p className="text-[11px] text-zinc-400 mt-1">Add staff and set availability from the Profile page.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                <HiOutlineBanknotes className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Payments Today</h2>
+                <p className="text-[11px] text-zinc-400">Advance & service payments collected</p>
+              </div>
+            </div>
+            {business?.payments?.requirePayment && (
+              <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full">Advance required</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-0.5">
+                <HiOutlineCurrencyRupee className="w-4 h-4 text-zinc-400" />
+                {paymentSummary?.totalCollected ?? 0}
+              </p>
+              <p className="text-[10px] text-zinc-400">Collected</p>
+            </div>
+            <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{paymentSummary?.paidCount ?? 0}</p>
+              <p className="text-[10px] text-zinc-400">Paid</p>
+            </div>
+            <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{paymentSummary?.pendingCount ?? 0}</p>
+              <p className="text-[10px] text-zinc-400">Pending</p>
+            </div>
+          </div>
+
+          {queue.some((q) => q.appointmentAmount > 0) ? (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {queue.filter((q) => q.appointmentAmount > 0).slice(0, 8).map((q) => (
+                <div key={q._id} className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
+                  <span className="inline-flex items-center justify-center w-10 h-6 rounded-md bg-primary/10 text-primary text-[10px] font-bold flex-shrink-0">Q{String(q.tokenNumber).padStart(3, '0')}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">{q.user?.name || q.walkInName || 'Unknown'}</p>
+                    <p className="text-[10px] text-zinc-400 truncate">{q.service || '—'}</p>
+                  </div>
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex-shrink-0">₹{q.appointmentAmount}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ${
+                    q.paymentStatus === 'paid'
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                      : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                  }`}>
+                    {q.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <HiOutlineBanknotes className="w-6 h-6 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                {business?.payments?.requirePayment
+                  ? 'No advance payments recorded yet today'
+                  : 'No payments collected today'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {pendingVerifications.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-100 dark:border-amber-500/20 p-6 mb-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+                <HiOutlineShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Payment Verification</h2>
+                <p className="text-[11px] text-zinc-400">Customers submitted advance payments waiting for your confirmation</p>
+              </div>
+            </div>
+            <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full">{pendingVerifications.length} pending</span>
+          </div>
+          <div className="space-y-2">
+            {pendingVerifications.map((v) => (
+              <div key={v._id} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
+                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {v.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate">{v.user?.name || 'Customer'}</p>
+                  <p className="text-[11px] text-zinc-400 truncate">
+                    {v.service}{v.staffName ? ` · ${v.staffName}` : ''} · {v.timeSlot || '—'}
+                    {v.paymentTransactionId ? ` · ${v.paymentTransactionId}` : ''}
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200 flex-shrink-0">₹{Number(v.advanceAmount) || 0}</span>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button onClick={() => handleVerifyPayment(v._id, 'paid')} disabled={notApproved}
+                    className="px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors disabled:opacity-40">
+                    Confirm
+                  </button>
+                  <button onClick={() => handleVerifyPayment(v._id, 'failed')} disabled={notApproved}
+                    className="px-3 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40">
+                    Mark failed
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 mb-5">
         <div className="flex flex-wrap gap-2">
-          <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={handleCallNext} disabled={waiting.length === 0 || notApproved}
+          <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={handleCallNext} disabled={waiting.length === 0 || notApproved || calling}
             className="h-10 px-5 rounded-xl gradient-primary text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-            <HiOutlineMegaphone className="w-4 h-4" /> Call Next
+            {calling ? (
+              <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Calling…</>
+            ) : (
+              <><HiOutlineMegaphone className="w-4 h-4" /> Call Next</>
+            )}
           </motion.button>
-          <button onClick={() => { if (called) handleCallNext(); }} disabled={!called || notApproved}
+          <button onClick={() => { if (called && !calling) handleCallNext(); }} disabled={!called || notApproved || calling}
             className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors flex items-center gap-1.5">
             <HiOutlineArrowPath className="w-4 h-4" /> Recall
-          </button>
-          <button onClick={() => setQueuePaused(p => !p)} disabled={notApproved}
-            className={`h-10 px-4 rounded-xl border text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-              queuePaused ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}>
-            {queuePaused ? <><HiOutlinePlay className="w-4 h-4" /> Resume</> : <><HiOutlinePause className="w-4 h-4" /> Pause</>}
           </button>
           <div className="flex-1" />
           <button onClick={startScanner} disabled={notApproved}
@@ -266,7 +479,7 @@ export default function BusinessDashboardPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                  {['Token', 'Customer', 'Service', 'Time', 'Actions'].map(h => (
+                  {['Token', 'Customer', 'Service', 'Checked In', 'ETA', 'Payment', 'Actions'].map(h => (
                     <th key={h} className={`text-left text-[10px] font-bold text-zinc-400 dark:text-zinc-500 pb-3 uppercase tracking-wider ${h === 'Actions' ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
@@ -281,12 +494,37 @@ export default function BusinessDashboardPage() {
                         <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{item.user?.name || item.walkInName || 'Unknown'}</span>
                       </div>
                     </td>
-                    <td className="py-3 text-sm text-zinc-500 dark:text-zinc-400">{item.service || '—'}</td>
-                    <td className="py-3 text-sm text-zinc-500 dark:text-zinc-400 font-mono">{item.timeSlot || '—'}</td>
+                    <td className="py-3">
+                      <span className="text-sm text-zinc-500 dark:text-zinc-400">{item.service || '—'}</span>
+                      {item.staffName && <span className="block text-[10px] text-zinc-400 mt-0.5">{item.staffName}</span>}
+                    </td>
+                    <td className="py-3 text-sm text-zinc-500 dark:text-zinc-400 font-mono">
+                      {item.checkedInAt ? new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                    </td>
+                    <td className="py-3 text-sm text-zinc-500 dark:text-zinc-400">
+                      {item.estimatedWaitTime != null
+                        ? `${item.estimatedWaitTime} min${item.peopleAhead > 0 ? ` · ${item.peopleAhead} ahead` : ''}`
+                        : '—'}
+                    </td>
+                    <td className="py-3">
+                      {item.appointmentAmount > 0 ? (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          item.paymentStatus === 'paid'
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                            : item.paymentStatus === 'failed'
+                              ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                        }`}>
+                          ₹{item.appointmentAmount} · {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'failed' ? 'Failed' : 'Pending'}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-300 dark:text-zinc-600">—</span>
+                      )}
+                    </td>
                     <td className="py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => handleComplete(item._id)} disabled={notApproved} className="px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors disabled:opacity-40">Done</button>
-                        <button onClick={() => handleSkip(item._id)} disabled={notApproved} className="px-3 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40">Skip</button>
+                        <button onClick={() => handleComplete(item._id, item)} disabled={notApproved || completing} className="px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors disabled:opacity-40">Done</button>
+                        <button onClick={() => handleSkip(item._id)} disabled={notApproved || skippingId === item._id} className="px-3 py-1 text-[11px] font-semibold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors disabled:opacity-40">{skippingId === item._id ? '…' : 'Skip'}</button>
                       </div>
                     </td>
                   </tr>
@@ -343,6 +581,15 @@ export default function BusinessDashboardPage() {
       </div>
 
       <AnimatePresence>
+        <CompleteModal
+          open={!!completeTarget}
+          label={completeTarget?.item?.user?.name || completeTarget?.item?.walkInName || 'this customer'}
+          amountLabel={completeTarget?.item?.appointmentAmount ? String(completeTarget.item.appointmentAmount) : ''}
+          busy={completing}
+          onPaid={() => confirmComplete(true)}
+          onUnpaid={() => confirmComplete(false)}
+          onClose={() => { if (!completing) setCompleteTarget(null); }}
+        />
         {showScanner && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={stopScanner}>
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-sm border border-zinc-100 dark:border-zinc-800 shadow-xl">

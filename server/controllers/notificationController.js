@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const MessageLog = require('../models/MessageLog');
 const Business = require('../models/Business');
+const { sendUserPush } = require('../services/pushService');
 
 exports.registerPushToken = async (req, res, next) => {
   try {
@@ -39,6 +40,34 @@ exports.unregisterPushToken = async (req, res, next) => {
     req.user.pushTokens = (req.user.pushTokens || []).filter((t) => t.token !== token);
     await req.user.save();
     res.json({ message: 'Push token removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.sendTestPush = async (req, res, next) => {
+  try {
+    const tokens = req.user.pushTokens || [];
+    if (tokens.length === 0) {
+      return res.status(400).json({ message: 'No registered devices. Enable push notifications first.' });
+    }
+
+    const result = await sendUserPush(req.user, {
+      title: 'QueueBook test',
+      body: 'This is a test push notification from QueueBook. Vibration follows your notification preference.',
+      data: { type: 'test_push' },
+    });
+
+    const expoOk = result.expo.filter((ticket) => ticket?.status === 'ok').length;
+    const webOk = result.web.filter((t) => t.ok).length;
+    const sent = expoOk + webOk;
+
+    res.json({
+      message: sent > 0 ? 'Test push sent' : 'Test push could not be delivered',
+      sent,
+      devices: tokens.length,
+      results: { expo: result.expo, web: result.web },
+    });
   } catch (error) {
     next(error);
   }

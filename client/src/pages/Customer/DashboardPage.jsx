@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMarker, HiOutlineBell, HiOutlineStar, HiOutlineArrowRight, HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlineCalendar, HiOutlineUsers, HiOutlineClock, HiOutlineLocationMarker, HiOutlineBell, HiOutlineStar, HiOutlineArrowRight, HiOutlineSearch, HiOutlineSparkles } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
-import { customerAPI } from '../../services/api';
-import Badge from '../../components/ui/Badge';
+import { appointmentAPI, customerAPI } from '../../services/api';
 import VerifiedBadge from '../../components/ui/VerifiedBadge';
 import SmartArrivalWidget from '../../components/dashboard/SmartArrivalWidget';
+import { CrowdLevelBadge, SourceNote } from '../../components/crowd/CrowdTiming';
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [bestTimesByBiz, setBestTimesByBiz] = useState({});
+  const [checkingIn, setCheckingIn] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
@@ -29,11 +32,56 @@ const DashboardPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (!dashboard?.nearbyBusinesses?.length) return;
+    const targets = dashboard.nearbyBusinesses.slice(0, 2);
+    let cancelled = false;
+    Promise.all(
+      targets.map((b) =>
+        customerAPI.getBestTimes(b._id)
+          .then((res) => ({ id: b._id, data: res.data }))
+          .catch(() => null)
+      )
+    ).then((results) => {
+      if (cancelled) return;
+      const map = {};
+      results.filter(Boolean).forEach((r) => { if (r.data?.best?.length) map[r.id] = r.data; });
+      setBestTimesByBiz(map);
+    });
+    return () => { cancelled = true; };
+  }, [dashboard]);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
     if (hour < 18) return 'Good Afternoon';
     return 'Good Evening';
+  };
+
+  const handleServiceSearch = (e) => {
+    e.preventDefault();
+    const value = searchQuery.trim();
+    if (!value) return;
+    navigate(`/customer/explore?service=${encodeURIComponent(value)}`);
+  };
+
+  const handleCheckIn = async () => {
+    const appt = dashboard?.upcomingAppointment;
+    if (!appt) return;
+    setCheckingIn(true);
+    try {
+      const res = await appointmentAPI.checkIn(appt._id);
+      alert(
+        res.data?.late
+          ? `Your appointment time has passed, but you have been placed in the queue. Token Q${res.data?.queue?.tokenNumber}. Please check in with the staff.`
+          : `You are now in the queue with token Q${res.data?.queue?.tokenNumber}.`
+      );
+      await fetchDashboard();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Could not check in right now.');
+    } finally {
+      setCheckingIn(false);
+    }
   };
 
   if (loading) {
@@ -59,7 +107,7 @@ const DashboardPage = () => {
             Here's what's happening today
           </p>
         </div>
-        <div className="relative">
+        <form onSubmit={handleServiceSearch} className="relative">
           <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             type="text"
@@ -68,7 +116,7 @@ const DashboardPage = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary w-64"
           />
-        </div>
+        </form>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -77,7 +125,7 @@ const DashboardPage = () => {
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Upcoming Appointment</h2>
-                <Badge variant="primary">Today</Badge>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary">Today</span>
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -88,6 +136,25 @@ const DashboardPage = () => {
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                     {dashboard.upcomingAppointment.service} • Token {dashboard.upcomingAppointment.tokenNumber}
                   </p>
+                  {dashboard.upcomingAppointment.amount > 0 && (
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        dashboard.upcomingAppointment.paidAt
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                          : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                      }`}>
+                        {dashboard.upcomingAppointment.paidAt ? 'Advance paid' : 'Advance pending'} · ₹{dashboard.upcomingAppointment.amount}
+                      </span>
+                      {!dashboard.upcomingAppointment.paidAt && (
+                        <Link
+                          to={`/customer/appointments/${dashboard.upcomingAppointment._id}/pay`}
+                          className="text-[11px] font-semibold text-primary hover:text-primary/80"
+                        >
+                          Pay now →
+                        </Link>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 mt-2">
                     <span className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                       <HiOutlineClock className="w-3 h-3" />
@@ -99,26 +166,36 @@ const DashboardPage = () => {
                     </span>
                   </div>
                 </div>
-                <Link
-                  to="/customer/queue"
-                  className="text-sm text-primary hover:text-primary/80 font-medium"
-                >
-                  View Queue
-                </Link>
+                {dashboard.upcomingAppointment.queueEntryId ? (
+                  <Link
+                    to="/customer/queue"
+                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                  >
+                    View Queue
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleCheckIn}
+                    disabled={checkingIn}
+                    className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-xl disabled:opacity-50 transition-colors"
+                  >
+                    {checkingIn ? 'Checking in…' : 'Check in now'}
+                  </button>
+                )}
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-4">
             <Link
-              to="/customer/book"
+              to="/customer/explore"
               className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 hover:border-primary/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
                 <HiOutlineCalendar className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Book</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Schedule new</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Find & schedule</p>
             </Link>
             <Link
               to="/customer/queue"
@@ -182,6 +259,43 @@ const DashboardPage = () => {
 
         <div className="space-y-6">
           <SmartArrivalWidget />
+
+          {Object.keys(bestTimesByBiz).length > 0 && (
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                  <HiOutlineSparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Best Time to Visit</h2>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">QueueBook Smart Timing</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {Object.entries(bestTimesByBiz).map(([bizId, data]) => {
+                  const biz = (dashboard?.nearbyBusinesses || []).find((b) => b._id === bizId);
+                  const pick = data.best[0];
+                  if (!pick) return null;
+                  return (
+                    <Link key={bizId} to={`/b/${bizId}`}
+                      className="block rounded-xl bg-zinc-50 dark:bg-zinc-800/60 p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                      <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">{biz?.name || 'Business'}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <div>
+                          <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{pick.time}</p>
+                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 capitalize">{pick.dateLabel}</p>
+                        </div>
+                        <CrowdLevelBadge level={pick.crowdLevel} />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              <div className="mt-3">
+                <SourceNote source={Object.values(bestTimesByBiz)[0]?.source} />
+              </div>
+            </div>
+          )}
 
           <div>
             <div className="flex items-center justify-between mb-4">

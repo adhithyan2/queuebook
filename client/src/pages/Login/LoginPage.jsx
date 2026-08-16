@@ -70,9 +70,9 @@ export default function LoginPage() {
             <input type="checkbox" className="w-4 h-4 rounded border-zinc-300 text-primary focus:ring-primary/20" />
             <span className="text-xs text-zinc-600 dark:text-zinc-400">Remember me</span>
           </label>
-          <Link to="/forgot-password" className="text-xs font-medium text-primary hover:text-primary-dark transition-colors">
+          <span className="text-xs text-zinc-400 dark:text-zinc-500 cursor-not-allowed" title="Password reset is not available yet">
             Forgot password?
-          </Link>
+          </span>
         </div>
 
         <div className="pt-2">

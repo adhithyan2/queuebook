@@ -1,20 +1,13 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import {
-  HiOutlineViewGrid, HiOutlineCalendar, HiOutlineClipboardList,
-  HiOutlineLocationMarker, HiOutlineBell, HiOutlineUser, HiOutlineCog,
-  HiOutlineSupport, HiOutlineLogout, HiOutlineMenu, HiOutlineX, HiOutlinePlus
+  HiOutlineViewGrid,
+  HiOutlineLogout, HiOutlineX
 } from 'react-icons/hi';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: HiOutlineViewGrid },
-];
-
-const bottomItems = [
-  { path: '/support', label: 'Support', icon: HiOutlineSupport },
-  { path: '/settings', label: 'Settings', icon: HiOutlineCog },
 ];
 
 export default function Sidebar({ mobileOpen, onMobileClose, sidebarCollapsed }) {
@@ -49,10 +42,7 @@ export default function Sidebar({ mobileOpen, onMobileClose, sidebarCollapsed })
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-3 pt-8 pb-8 px-6 flex-shrink-0 border-b border-[#ECECEC]">
-        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-          <HiOutlinePlus className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-lg font-bold gradient-text">QueueBook</span>
+        <img src="/queuebook-logo.png" alt="QueueBook" className="h-9 w-auto object-contain bg-white rounded-lg px-2 py-1" />
       </div>
 
       <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
@@ -62,9 +52,6 @@ export default function Sidebar({ mobileOpen, onMobileClose, sidebarCollapsed })
       </nav>
 
       <div className="py-5 border-t border-[#ECECEC] space-y-1">
-        {bottomItems.map((item) => (
-          <NavLink key={item.path} item={item} />
-        ))}
         <button
           onClick={logout}
           className="flex items-center gap-3 pl-5 pr-4 h-[52px] rounded-2xl text-sm font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
@@ -75,7 +62,7 @@ export default function Sidebar({ mobileOpen, onMobileClose, sidebarCollapsed })
       </div>
 
       <div className="px-3 pb-5 pt-5 border-t border-[#ECECEC]">
-        <Link to="/profile" className="flex items-center gap-3 pl-3 pr-3 py-4 rounded-[14px] hover:bg-slate-50 transition-all">
+        <Link to="/admin" className="flex items-center gap-3 pl-3 pr-3 py-4 rounded-[14px] hover:bg-slate-50 transition-all">
           <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
@@ -118,10 +105,7 @@ export default function Sidebar({ mobileOpen, onMobileClose, sidebarCollapsed })
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-6 border-b border-[#ECECEC]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                    <HiOutlinePlus className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-lg font-bold gradient-text">QueueBook</span>
+                  <img src="/queuebook-logo.png" alt="QueueBook" className="h-9 w-auto object-contain bg-white rounded-lg px-2 py-1" />
                 </div>
                 <button onClick={onMobileClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
                   <HiOutlineX className="w-5 h-5" />

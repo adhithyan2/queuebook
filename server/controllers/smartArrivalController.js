@@ -1,6 +1,7 @@
 const Queue = require('../models/Queue');
 const Business = require('../models/Business');
-const { getTodayRange, calculateWaitTime } = require('../utils/helpers');
+const { getTodayRange } = require('../utils/helpers');
+const { estimateWaitMinutes } = require('../services/etaService');
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -45,7 +46,7 @@ exports.getRecommendation = async (req, res, next) => {
       queueDate: { $gte: start, $lte: end },
       status: { $in: ['waiting', 'called'] },
     })
-      .populate('business', 'name category address location avgServiceTime')
+      .populate('business', 'name category address location avgServiceTime staff')
       .sort({ tokenNumber: 1 });
 
     if (!activeQueue) {
@@ -66,8 +67,7 @@ exports.getRecommendation = async (req, res, next) => {
       status: 'called',
     }).sort({ calledAt: -1 });
 
-    const avgTime = business.avgServiceTime || 5;
-    const estimatedWaitTime = peopleAhead * avgTime;
+    const estimatedWaitTime = estimateWaitMinutes(peopleAhead, business);
 
     let travelTimeMin = null;
     const busLat = business.location?.coordinates?.[1];
@@ -89,12 +89,12 @@ exports.getRecommendation = async (req, res, next) => {
     }
 
     const now = new Date();
-    const leaveInMinutes = travelTimeMin !== null
+    const leaveInMinutes = travelTimeMin !== null && estimatedWaitTime !== null
       ? Math.max(0, estimatedWaitTime - travelTimeMin)
       : null;
 
     let recommendation = 'relax';
-    let message = '';
+    let message = 'Live queue update — your token is active. We will notify you when your turn is near.';
     if (leaveInMinutes !== null) {
       if (leaveInMinutes <= 0) {
         recommendation = 'leave_now';
@@ -131,7 +131,7 @@ exports.getRecommendation = async (req, res, next) => {
       message,
       estimatedLeaveTime: estimatedLeaveTime?.toISOString(),
       estimatedServiceTime: estimatedServiceTime?.toISOString(),
-      avgServiceTime: avgTime,
+      avgServiceTime: Number(business.avgServiceTime) > 0 ? business.avgServiceTime : null,
       hasLocation: !!(lat && lng && hasBusinessLocation),
       hasBusinessLocation,
       hasGoogleMaps: !!process.env.GOOGLE_MAPS_API_KEY,

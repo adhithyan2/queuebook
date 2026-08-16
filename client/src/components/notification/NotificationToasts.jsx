@@ -9,6 +9,14 @@ import { useAuth } from '../../context/AuthContext';
 
 const TOAST_DURATION = 6000;
 
+const ALERT_TYPES = new Set(['turn_coming', 'one_ahead', 'turn_now']);
+const VIBRATION_PATTERNS = {
+  turn_now: [0, 350, 200, 350],
+  turn_coming: [0, 250, 150, 250],
+  one_ahead: [0, 200],
+};
+const DEDUPE_MS = { turn_now: 90000, turn_coming: 60000, one_ahead: 60000 };
+
 const ICONS = {
   queue: HiOutlineUsers,
   appointment: HiOutlineCalendar,
@@ -32,6 +40,7 @@ export default function NotificationToasts() {
   const navigate = useNavigate();
   const [toasts, setToasts] = useState([]);
   const timers = useRef(new Map());
+  const lastAlertAt = useRef(new Map());
 
   const dismiss = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -42,11 +51,25 @@ export default function NotificationToasts() {
     }
   }, []);
 
+  const triggerVibration = useCallback((type) => {
+    if (!ALERT_TYPES.has(type)) return;
+    if (user?.vibrationPreference === false) return;
+    if (typeof navigator === 'undefined' || !navigator.vibrate) return;
+    const now = Date.now();
+    const last = lastAlertAt.current.get(type) || 0;
+    if (now - last < (DEDUPE_MS[type] || 30000)) return;
+    lastAlertAt.current.set(type, now);
+    try {
+      navigator.vibrate(VIBRATION_PATTERNS[type] || [250]);
+    } catch {}
+  }, [user]);
+
   useEffect(() => {
     if (!socket) return;
     const timerMap = timers.current;
     const handleNotification = (notification) => {
       const id = notification._id || `${Date.now()}-${Math.random()}`;
+      triggerVibration(notification.data?.type || notification.type);
       setToasts((prev) => {
         if (prev.some((t) => t.id === id)) return prev;
         return [...prev.slice(-3), { id, ...notification }];
@@ -60,7 +83,7 @@ export default function NotificationToasts() {
       timerMap.forEach((t) => clearTimeout(t));
       timerMap.clear();
     };
-  }, [socket, dismiss]);
+  }, [socket, dismiss, triggerVibration]);
 
   return (
     <div className="fixed top-4 right-4 z-[100] flex flex-col gap-3 w-[min(92vw,380px)] pointer-events-none">

@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '@/services/api';
 
@@ -11,8 +12,12 @@ export type PushEnvironment = 'expo-go' | 'development-build' | 'web';
 
 const PUSH_TOKEN_KEY = 'pushToken';
 
+export const DEFAULT_CHANNEL_ID = 'queuebook-default';
+export const QUIET_CHANNEL_ID = 'queuebook-quiet';
+
 let _notifications: NotificationsModule | null | undefined = undefined;
 let _handlerInstalled = false;
+let _channelsConfigured: Promise<void> | null = null;
 
 /**
  * Returns where the app is running:
@@ -67,32 +72,103 @@ function getNotifications(): NotificationsModule | null {
  * True only when remote push can actually be obtained on this runtime.
  * - Web / Android+Expo Go  -> false (never touches the module)
  * - iOS Expo Go            -> true
- * - Native dev/standalone  -> true
+ * - Native dev/standalone  -> true only on a physical device
+ *
+ * expo-device gates token registration to physical hardware: emulators and
+ * simulators cannot reliably register an Expo push token, so we treat them as
+ * unsupported rather than crashing or silently failing.
  */
 export function isPushSupported(): boolean {
   const env = getPushEnvironment();
   if (env === 'web') return false;
   if (env === 'expo-go' && Platform.OS === 'android') return false;
-  return getNotifications() !== null;
+  if (getNotifications() === null) return false;
+  try {
+    if (!Device.isDevice) return false;
+  } catch {
+    // expo-device unavailable; assume a physical device below.
+  }
+  return true;
+}
+
+/**
+ * Human-readable reason push is unavailable on this runtime, for warnings.
+ * Returns null when push is supported.
+ */
+export function getPushUnsupportedReason(): string | null {
+  const env = getPushEnvironment();
+  if (env === 'web') return 'Push notifications are not available on web browsers in this app.';
+  if (env === 'expo-go' && Platform.OS === 'android') {
+    return 'Android remote push was removed from Expo Go in SDK 53+. Install the QueueBook development build instead.';
+  }
+  if (getNotifications() === null) return 'expo-notifications is not available on this platform.';
+  try {
+    if (!Device.isDevice) {
+      return 'Push token registration requires a physical Android device (emulators are not supported).';
+    }
+  } catch {
+    // Treat as supported.
+  }
+  return null;
+}
+
+/**
+ * Create (once) the Android notification channels used by every QueueBook
+ * push. Safe to call from anywhere: it no-ops on non-Android runtimes and in
+ * Expo Go on Android, and it never recreates a channel that already exists.
+ *
+ * - queuebook-default : MAX importance, sound, vibration (default for ON)
+ * - queuebook-quiet   : HIGH importance, sound, NO vibration (vibration OFF)
+ *
+ * The server selects the channel per user via `vibrationPreference`, so the
+ * native Android system renders the tray notification correctly even when the
+ * app is backgrounded/locked and JavaScript is not running.
+ */
+export async function configureAndroidChannels(): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  if (!isPushSupported()) return;
+
+  const Notifications = getNotifications();
+  if (!Notifications) return;
+
+  if (_channelsConfigured) return _channelsConfigured;
+
+  _channelsConfigured = (async () => {
+    const existingDefault = await Notifications.getNotificationChannelAsync(DEFAULT_CHANNEL_ID);
+    if (!existingDefault) {
+      await Notifications.setNotificationChannelAsync(DEFAULT_CHANNEL_ID, {
+        name: 'QueueBook',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 150, 250],
+        enableVibrate: true,
+        showBadge: true,
+      });
+    }
+
+    const existingQuiet = await Notifications.getNotificationChannelAsync(QUIET_CHANNEL_ID);
+    if (!existingQuiet) {
+      await Notifications.setNotificationChannelAsync(QUIET_CHANNEL_ID, {
+        name: 'QueueBook (No Vibration)',
+        importance: Notifications.AndroidImportance.HIGH,
+        enableVibrate: false,
+        showBadge: true,
+      });
+    }
+  })().catch((err) => {
+    _channelsConfigured = null;
+    throw err;
+  });
+
+  return _channelsConfigured;
 }
 
 export async function getPushToken(): Promise<PushToken> {
-  // Avoid re-requesting permission / re-registering if already done.
-  const existing = await AsyncStorage.getItem(PUSH_TOKEN_KEY);
-  if (existing) return existing;
-
   if (!isPushSupported()) return null;
 
   const Notifications = getNotifications();
   if (!Notifications) return null;
 
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'QueueBook',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-    });
-  }
+  await configureAndroidChannels();
 
   const existingPerm = await Notifications.getPermissionsAsync();
   let status = existingPerm.status;
@@ -100,8 +176,15 @@ export async function getPushToken(): Promise<PushToken> {
     const requested = await Notifications.requestPermissionsAsync();
     status = requested.status;
   }
-  if (status !== 'granted') return null;
+  if (status !== 'granted') {
+    console.warn('Push permission denied on device:', status);
+    return null;
+  }
 
+  // Always fetch a fresh token for the current EAS project and re-register it.
+  // The cached token must never be trusted on its own: an APK upgrade keeps
+  // AsyncStorage, so a token from a previous project/backend could look valid
+  // while the server has no record of it.
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
   const token = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : {});
   await api.push.register(token.data, 'expo');
@@ -135,6 +218,23 @@ export function onNotificationTap(handler: (data: any) => void): (() => void) | 
   if (!Notifications) return null;
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {
     handler(response.notification.request.content.data);
+  });
+  return () => sub.remove();
+}
+
+/**
+ * Register a listener that fires as soon as a notification is received while
+ * the app is running (foreground). Returns an unsubscribe function, or null
+ * when notifications are unsupported.
+ */
+export function onNotificationReceived(
+  handler: (notification: any) => void
+): (() => void) | null {
+  if (!isPushSupported()) return null;
+  const Notifications = getNotifications();
+  if (!Notifications) return null;
+  const sub = Notifications.addNotificationReceivedListener((notification) => {
+    handler(notification);
   });
   return () => sub.remove();
 }

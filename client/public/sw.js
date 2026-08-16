@@ -6,7 +6,7 @@ self.addEventListener('push', (event) => {
     payload = { title: 'QueueBook', body: event.data ? event.data.text() : '' };
   }
 
-  const { title = 'QueueBook', body = '', data = {}, icon = '/queuebook-logo.png', badge = '/favicon.svg' } = payload;
+  const { title = 'QueueBook', body = '', data = {}, icon = '/queuebook-logo.png', badge = '/favicon.png' } = payload;
 
   event.waitUntil(
     self.registration.showNotification(title, {

@@ -88,6 +88,68 @@ const PushNotificationCard = () => {
   );
 };
 
+const VibrationPreferenceCard = () => {
+  const { user, setUser } = useAuth();
+  const enabled = user?.vibrationPreference !== false;
+  const [vibrating, setVibrating] = useState(false);
+  const [vibrateMessage, setVibrateMessage] = useState({ type: '', text: '' });
+
+  const handleToggle = async () => {
+    setVibrating(true);
+    setVibrateMessage({ type: '', text: '' });
+    try {
+      const res = await customerAPI.updateProfile({ vibrationPreference: !enabled });
+      setUser(res.data.user);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setVibrateMessage({ type: 'success', text: enabled ? 'Vibration alerts disabled' : 'Vibration alerts enabled' });
+    } catch (error) {
+      setVibrateMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update settings' });
+    } finally {
+      setVibrating(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <HiBell className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Vibration Alerts</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
+              Vibrate this device when your turn is near or called.
+            </p>
+            {vibrateMessage.text && (
+              <p className={`mt-2 text-xs font-medium ${
+                vibrateMessage.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+              }`}>
+                {vibrateMessage.text}
+              </p>
+            )}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={vibrating}
+          className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
+            enabled ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'
+          }`}
+          aria-label="Toggle vibration alerts"
+        >
+          <span
+            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+              enabled ? 'left-[22px]' : 'left-0.5'
+            }`}
+          />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ProfilePage = () => {
   const { user, setUser } = useAuth();
   const [formData, setFormData] = useState({
@@ -305,6 +367,7 @@ const ProfilePage = () => {
         </form>
       </div>
 
+      <VibrationPreferenceCard />
       <PushNotificationCard />
     </motion.div>
   );

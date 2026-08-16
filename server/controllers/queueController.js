@@ -1,14 +1,29 @@
 const Queue = require('../models/Queue');
 const Appointment = require('../models/Appointment');
 const Business = require('../models/Business');
-const { getTodayRange, generateTokenNumber, calculateWaitTime } = require('../utils/helpers');
+const { getTodayRange, generateTokenNumber } = require('../utils/helpers');
 const { notifyUser } = require('../services/notificationService');
+const { computeQueueState, estimateWaitMinutes } = require('../services/etaService');
+const { broadcastQueueRefresh } = require('../socket/queueHandler');
 
 exports.joinQueue = async (req, res, next) => {
   try {
     const { business, appointment: appointmentId } = req.body;
     const { start, end } = getTodayRange();
+
+    if (appointmentId) {
+      const existing = await Queue.findOne({
+        appointment: appointmentId,
+        status: { $in: ['waiting', 'called'] },
+      });
+      if (existing) {
+        return res.status(400).json({ message: 'This booking is already in the live queue' });
+      }
+    }
+
     const tokenNumber = await generateTokenNumber(Queue, business);
+
+    const businessDoc = await Business.findById(business).select('name avgServiceTime staff');
 
     const waitingCount = await Queue.countDocuments({
       business,
@@ -24,14 +39,13 @@ exports.joinQueue = async (req, res, next) => {
       queueDate: start,
       status: 'waiting',
       position: waitingCount + 1,
-      estimatedWaitTime: calculateWaitTime(waitingCount),
+      estimatedWaitTime: estimateWaitMinutes(waitingCount, businessDoc),
     });
 
     if (appointmentId) {
-      await Appointment.findByIdAndUpdate(appointmentId, { tokenNumber });
+      await Appointment.findByIdAndUpdate(appointmentId, { tokenNumber, status: 'checked_in' });
     }
 
-    const businessDoc = await Business.findById(business).select('name avgServiceTime');
     await notifyUser({
       user: req.user,
       business: businessDoc,
@@ -42,9 +56,11 @@ exports.joinQueue = async (req, res, next) => {
         businessName: businessDoc?.name || 'the business',
         tokenNumber,
         peopleAhead: waitingCount,
-        waitTime: calculateWaitTime(waitingCount, businessDoc?.avgServiceTime),
+        waitTime: estimateWaitMinutes(waitingCount, businessDoc),
       },
     });
+
+    await broadcastQueueRefresh(business);
 
     res.status(201).json({ queue });
   } catch (error) {
@@ -60,29 +76,38 @@ exports.getMyQueue = async (req, res, next) => {
       queueDate: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
     })
-      .populate('business', 'name category avgServiceTime')
+      .populate('business', 'name category avgServiceTime openingHours timeSlots')
+      .populate('appointment', 'service timeSlot staffName checkedInAt expectedStartTime expectedEndTime')
       .sort({ tokenNumber: 1 });
 
-    const queuesWithPosition = await Promise.all(
-      queues.map(async (q) => {
-        const peopleAhead = await Queue.countDocuments({
-          business: q.business._id,
-          queueDate: { $gte: start, $lte: end },
-          tokenNumber: { $lt: q.tokenNumber },
-          status: { $in: ['waiting', 'called'] },
-        });
+    // Use the same ETA engine the business dashboard sees.
+    const businessIds = [...new Set(queues.map((q) => String(q.business?._id)).filter(Boolean))];
+    const states = await Promise.all(businessIds.map((id) => computeQueueState(id).catch(() => null)));
+    const liveByQueue = new Map();
+    for (const s of states) {
+      if (!s) continue;
+      for (const e of s.queue || []) liveByQueue.set(String(e.queueId), e);
+    }
 
-        const avgTime = q.business?.avgServiceTime || 5;
-        const estimatedWaitTime = peopleAhead * avgTime;
-
-        return {
-          ...q.toObject(),
-          position: peopleAhead + 1,
-          peopleAhead,
-          estimatedWaitTime,
-        };
-      })
-    );
+    const queuesWithPosition = queues.map((q) => {
+      const live = liveByQueue.get(String(q._id));
+      const isActive = ['waiting', 'called'].includes(q.status);
+      return {
+        ...q.toObject(),
+        position: live?.position ?? (q.position || null),
+        peopleAhead: live?.peopleAhead ?? null,
+        estimatedWaitTime: live?.etaMinutes ?? q.estimatedWaitTime,
+        currentToken: live?.currentToken ?? null,
+        beingServedCount: live?.beingServedCount ?? null,
+        activeStaff: live?.activeStaff ?? null,
+        isOpen: live?.isOpen ?? null,
+        service: q.appointment?.service || null,
+        staffName: q.appointment?.staffName || null,
+        timeSlot: q.appointment?.timeSlot || null,
+        checkedInAt: q.appointment?.checkedInAt || null,
+        isActive,
+      };
+    });
 
     res.json({ queues: queuesWithPosition });
   } catch (error) {
@@ -98,26 +123,17 @@ exports.getQueueStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Queue not found' });
     }
 
-    const { start, end } = getTodayRange();
-
-    const peopleAhead = await Queue.countDocuments({
-      business: queue.business,
-      queueDate: { $gte: start, $lte: end },
-      tokenNumber: { $lt: queue.tokenNumber },
-      status: { $in: ['waiting', 'called'] },
-    });
-
-    const currentToken = await Queue.findOne({
-      business: queue.business,
-      queueDate: { $gte: start, $lte: end },
-      status: 'called',
-    }).sort({ calledAt: -1 });
+    const state = await computeQueueState(queue.business);
+    const live = (state.queue || []).find((e) => String(e.queueId) === String(queue._id));
 
     res.json({
       queue,
-      peopleAhead,
-      currentToken: currentToken?.tokenNumber || null,
-      estimatedWaitTime: calculateWaitTime(peopleAhead, queue.business?.avgServiceTime || 5),
+      peopleAhead: live?.peopleAhead ?? null,
+      currentToken: state.currentToken || null,
+      estimatedWaitTime: live?.etaMinutes ?? null,
+      isOpen: state.isOpen,
+      activeStaff: state.activeStaff,
+      beingServed: state.beingServed,
     });
   } catch (error) {
     next(error);
@@ -128,26 +144,14 @@ exports.getQueueScan = async (req, res, next) => {
   try {
     const queue = await Queue.findById(req.params.id)
       .populate('business', 'name category address phone avgServiceTime')
-      .populate('appointment', 'service timeSlot');
+      .populate('appointment', 'service timeSlot staffName');
 
     if (!queue) {
       return res.status(404).json({ message: 'Queue not found' });
     }
 
-    const { start, end } = getTodayRange();
-
-    const peopleAhead = await Queue.countDocuments({
-      business: queue.business._id,
-      queueDate: { $gte: start, $lte: end },
-      tokenNumber: { $lt: queue.tokenNumber },
-      status: { $in: ['waiting', 'called'] },
-    });
-
-    const currentToken = await Queue.findOne({
-      business: queue.business._id,
-      queueDate: { $gte: start, $lte: end },
-      status: 'called',
-    }).sort({ calledAt: -1 });
+    const state = await computeQueueState(queue.business._id);
+    const live = (state.queue || []).find((e) => String(e.queueId) === String(queue._id));
 
     res.json({
       queue: {
@@ -158,11 +162,13 @@ exports.getQueueScan = async (req, res, next) => {
         businessCategory: queue.business?.category || '',
         businessAddress: queue.business?.address || '',
         serviceName: queue.appointment?.service || '',
-        currentToken: currentToken?.tokenNumber || null,
-        peopleAhead,
-        position: peopleAhead + 1,
-        estimatedWaitTime: calculateWaitTime(peopleAhead, queue.business?.avgServiceTime || 5),
-        lastUpdated: queue.updatedAt || queue.createdAt,
+        staffName: queue.appointment?.staffName || '',
+        currentToken: state.currentToken || null,
+        peopleAhead: live?.peopleAhead ?? null,
+        position: live?.position ?? null,
+        estimatedWaitTime: live?.etaMinutes ?? null,
+        isOpen: state.isOpen,
+        lastUpdated: state.computedAt || queue.updatedAt || queue.createdAt,
       },
     });
   } catch (error) {
@@ -181,6 +187,10 @@ exports.leaveQueue = async (req, res, next) => {
       return res.status(404).json({ message: 'Queue not found' });
     }
 
+    if (queue.appointment) {
+      await Appointment.findByIdAndUpdate(queue.appointment, { status: 'cancelled' });
+    }
+
     const businessDoc = await Business.findById(queue.business).select('name');
     await notifyUser({
       user: req.user,
@@ -193,6 +203,8 @@ exports.leaveQueue = async (req, res, next) => {
         tokenNumber: queue.tokenNumber,
       },
     });
+
+    await broadcastQueueRefresh(queue.business);
 
     res.json({ queue });
   } catch (error) {

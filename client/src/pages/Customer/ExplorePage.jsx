@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -14,6 +14,8 @@ import { HiOutlineSearch, HiOutlineLocationMarker } from 'react-icons/hi';
 import { customerAPI } from '../../services/api';
 import VerifiedBadge from '../../components/ui/VerifiedBadge';
 import { useSocket } from '../../context/SocketContext';
+import ServiceComparison from '../../components/customer/ServiceComparison';
+import { CrowdLevelBadge } from '../../components/crowd/CrowdTiming';
 
 const ACCENT = '#6D5EF7';
 const categories = ['All', 'Hospital', 'Clinic', 'Salon', 'Restaurant', 'Office', 'Laboratory'];
@@ -98,12 +100,27 @@ function ServiceCard({ business, isBest, onSelect }) {
           </h3>
           <p className="text-xs text-zinc-400 mt-0.5 capitalize">{business.category}</p>
         </div>
-        <span className={`flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
-          isOpen ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-500'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
-          {isOpen ? 'Open' : 'Closed'}
-        </span>
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+            isOpen ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-500'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+            {isOpen ? 'Open' : 'Closed'}
+          </span>
+          {business.smartTiming && (
+            business.smartTiming.hasEnoughData === false ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                Smart Timing: Not enough data yet
+              </span>
+            ) : (
+              <CrowdLevelBadge
+                level={business.smartTiming.currentCrowdLevel}
+                label={`Smart Timing: ${business.smartTiming.currentCrowdLevel === 'low' ? 'Quiet' : business.smartTiming.currentCrowdLevel === 'medium' ? 'Moderate' : 'Busy'} now`}
+              />
+            )
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -158,6 +175,13 @@ function ServiceCard({ business, isBest, onSelect }) {
           <span className="text-[11px] text-zinc-400">{business.openTime}–{business.closeTime}</span>
         )}
       </div>
+
+      {business.smartTiming?.bestTimeToday && (
+        <p className="text-[11px] text-zinc-400 mb-4 flex items-center gap-1">
+          <HiOutlineClock className="w-3 h-3 text-[#6D5EF7]" />
+          Quietest slot today: <span className="font-semibold text-zinc-600">{business.smartTiming.bestTimeToday.time}</span>
+        </p>
+      )}
 
       <div className="flex gap-2">
         <button
@@ -246,6 +270,7 @@ function RecommendationBanner({ recommendation, userLocation }) {
 
 export default function ExplorePage() {
   const socket = useSocket();
+  const [searchParams] = useSearchParams();
   const [businesses, setBusinesses] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -474,6 +499,8 @@ export default function ExplorePage() {
 
       <RecommendationBanner recommendation={recommendation} userLocation={userLocation} />
 
+      <ServiceComparison userLocation={userLocation} presetService={searchParams.get('service') || ''} />
+
       <div className="bg-white rounded-[20px] shadow-[0_2px_16px_rgba(15,23,42,0.06)] border border-zinc-100 overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-100">
           <HiOutlineMapPin className="w-4 h-4 text-[#6D5EF7]" />
@@ -482,7 +509,20 @@ export default function ExplorePage() {
             <span className="text-[11px] text-zinc-400 ml-auto">Tap a marker or card for details</span>
           )}
         </div>
-        <div className="h-[420px] w-full z-0">
+        <div className="relative h-[420px] w-full z-0">
+          {!userLocation && (
+            <div className="absolute inset-0 z-[1000] bg-white/85 backdrop-blur-sm flex items-center justify-center px-6">
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-2xl bg-[#6D5EF7]/10 flex items-center justify-center mx-auto mb-3">
+                  <HiOutlineMapPin className="w-6 h-6 text-[#6D5EF7]" />
+                </div>
+                <p className="text-sm font-semibold text-zinc-900">Location unavailable</p>
+                <p className="text-xs text-zinc-500 mt-1.5 max-w-[260px]">
+                  Enable location or enter an area above to see services around you on the map.
+                </p>
+              </div>
+            </div>
+          )}
           <MapContainer
             center={center}
             zoom={12}
@@ -562,7 +602,7 @@ export default function ExplorePage() {
           <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             type="text"
-            placeholder="Search by business name…"
+            placeholder="Search services or businesses…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-zinc-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#6D5EF7]/40 focus:border-[#6D5EF7] shadow-sm"

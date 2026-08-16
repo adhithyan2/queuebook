@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card } from '@/components/ui/form';
 import { useAuth } from '@/context/auth';
 import { api } from '@/services/api';
+import { subscribe } from '@/services/socket';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -16,6 +17,33 @@ export default function HomeScreen() {
   const [dashboard, setDashboard] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const istHHMM = (iso?: string | null) => {
+    if (!iso) return '';
+    const ist = new Date(new Date(iso).getTime() + 5.5 * 3600 * 1000);
+    return `${String(ist.getUTCHours()).padStart(2, '0')}:${String(ist.getUTCMinutes()).padStart(2, '0')}`;
+  };
+
+  const handleCheckIn = async () => {
+    const appt = dashboard?.upcomingAppointment;
+    if (!appt) return;
+    setCheckingIn(true);
+    try {
+      const res = await api.appointments.checkin(appt._id);
+      Alert.alert(
+        'Checked in',
+        res.late
+          ? `Your appointment time has passed, but you have been placed in the queue. Token Q${res.queue?.tokenNumber}. Please check in with the staff.`
+          : `You are now in the queue with token Q${res.queue?.tokenNumber}.`,
+        [{ text: 'OK', onPress: () => load() }]
+      );
+    } catch (err: any) {
+      Alert.alert('Check-in failed', err?.message || 'Could not check in right now.');
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -29,8 +57,14 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount
     load();
+  }, [load]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe('position-update', () => {
+      load();
+    });
+    return unsubscribe;
   }, [load]);
 
   const onRefresh = useCallback(async () => {
@@ -78,7 +112,9 @@ export default function HomeScreen() {
                       {activeQueue.business?.name || 'Your queue'}
                     </Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
-                      {queueStatus?.peopleAhead ?? 0} ahead · ~{queueStatus?.estimatedWaitTime ?? 0} min
+                      {queueStatus?.peopleAhead != null ? `${queueStatus.peopleAhead} ahead` : '— ahead'}
+                      {' · '}
+                      {queueStatus?.estimatedWaitTime != null ? `~${queueStatus.estimatedWaitTime} min` : 'wait unknown'}
                     </Text>
                     {queueStatus?.currentToken ? (
                       <Text style={{ color: theme.success, fontSize: 13, marginTop: 2 }}>
@@ -102,6 +138,60 @@ export default function HomeScreen() {
                 {dashboard.upcomingAppointment.service} ·{' '}
                 {dashboard.upcomingAppointment.timeSlot} · {dashboard.upcomingAppointment.date?.slice(0, 10)}
               </Text>
+              {dashboard.upcomingAppointment.staffName ? (
+                <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
+                  Staff: {dashboard.upcomingAppointment.staffName}
+                </Text>
+              ) : null}
+              {dashboard.upcomingAppointment.expectedStartTime &&
+              dashboard.upcomingAppointment.expectedEndTime ? (
+                <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
+                  Expected service: {dashboard.upcomingAppointment.expectedStartTime} –{' '}
+                  {dashboard.upcomingAppointment.expectedEndTime}
+                </Text>
+              ) : null}
+              {!dashboard.upcomingAppointment.queueEntryId ? (
+                <>
+                  <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
+                    Status: Appointment Scheduled
+                  </Text>
+                  {dashboard.upcomingAppointment.arrivalWindowStart ? (
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
+                      Please arrive by {istHHMM(dashboard.upcomingAppointment.arrivalWindowStart)}
+                    </Text>
+                  ) : null}
+                  <Pressable
+                    onPress={handleCheckIn}
+                    disabled={checkingIn}
+                    style={[styles.checkInBtn, { backgroundColor: theme.tint }]}>
+                    <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 14 }}>
+                      {checkingIn ? 'Checking in…' : 'Check In'}
+                    </Text>
+                  </Pressable>
+                </>
+              ) : null}
+              {(dashboard.upcomingAppointment.paymentStatus === 'pending' ||
+                dashboard.upcomingAppointment.paymentStatus === 'failed') && (
+                <Pressable
+                  onPress={() => router.push(`/appointment/${dashboard.upcomingAppointment._id}/pay`)}>
+                  <View style={[styles.payRow, { borderTopColor: theme.border }]}>
+                    <Text
+                      style={{
+                        color: dashboard.upcomingAppointment.paidAt ? theme.success : theme.tint,
+                        fontSize: 12,
+                        fontWeight: '700',
+                      }}>
+                      {dashboard.upcomingAppointment.paidAt ? 'Advance paid' : 'Advance pending'} · ₹
+                      {dashboard.upcomingAppointment.paidAt
+                        ? dashboard.upcomingAppointment.amount
+                        : dashboard.upcomingAppointment.advanceAmount}
+                    </Text>
+                    {!dashboard.upcomingAppointment.paidAt ? (
+                      <Text style={{ color: theme.tint, fontSize: 12, fontWeight: '700' }}>Pay now ›</Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+              )}
             </Card>
           ) : null}
 
@@ -120,10 +210,13 @@ export default function HomeScreen() {
             <Text style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>
               {item.category} · {item.address}
             </Text>
-            <View style={styles.bizMeta}>
-              <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                ⭐ {item.averageRating || item.rating || '—'} · {item.reviewCount || 0} reviews
-              </Text>
+              <View style={styles.bizMeta}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="star" size={13} color="#fbbf24" />
+                  <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                    {item.averageRating || item.rating || '—'} · {item.reviewCount || 0} reviews
+                  </Text>
+                </View>
               {item.liveQueue && (
                 <Text style={{ color: theme.tint, fontSize: 12, fontWeight: '600' }}>
                   {item.liveQueue.waiting} waiting
@@ -205,6 +298,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
+  },
+  payRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  checkInBtn: {
+    marginTop: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
   },
   itemTitle: {
     fontSize: 15,

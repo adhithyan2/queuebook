@@ -9,6 +9,7 @@ export type User = {
   phone?: string;
   phoneVerified?: boolean;
   location?: string;
+  vibrationPreference?: boolean;
 };
 
 export class ApiError extends Error {
@@ -68,15 +69,44 @@ export const api = {
       nearbyBusinesses: any[];
     }>('/customer/dashboard'),
 
-  nearby: () =>
-    request<{ businesses: any[] }>('/customer/explore'),
+  nearby: (params?: { search?: string; category?: string; lat?: number; lng?: number }) => {
+    const qs = new URLSearchParams(
+      Object.entries(params || {}).filter(([, v]) => Boolean(v)) as [string, string][]
+    ).toString();
+    return request<{ businesses: any[] }>(`/customer/explore${qs ? `?${qs}` : ''}`);
+  },
 
   business: (id: string) => request<{ business: any; liveQueue: any }>(`/customer/public/${id}`),
 
   appointments: {
-    create: (data: { business: string; service: string; date: string; timeSlot: string }) =>
-      request('/appointments', { body: data }),
+    create: (data: {
+      business: string;
+      service: string;
+      date: string;
+      timeSlot: string;
+      staff?: string;
+      bookingType?: 'walk_in' | 'advance';
+    }) =>
+      request<{ appointment: any; paymentRequired?: boolean }>('/appointments', { body: data }),
     getAll: () => request<{ appointments: any[] }>('/appointments'),
+    checkin: (id: string) =>
+      request<{ appointment: any; queue: any; late: boolean }>(`/appointments/${id}/checkin`, {
+        method: 'PUT',
+      }),
+    payment: (id: string) =>
+      request<{ appointment: any; business: any }>(`/appointments/${id}/payment`),
+    pay: (id: string, data: { method: string; transactionId?: string }) =>
+      request<{ appointment: any; queue?: any; awaitingVerification?: boolean; payAtBusiness?: boolean; message?: string }>(
+        `/appointments/${id}/payment`,
+        { body: data }
+      ),
+  },
+
+  slots: (params: { business: string; date: string; service?: string; staff?: string }) => {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([, v]) => Boolean(v)) as [string, string][]
+    ).toString();
+    return request<{ slots: any[]; staff: any }>(`/customer/slots?${qs}`);
   },
 
   queue: {
@@ -92,7 +122,7 @@ export const api = {
   },
 
   profile: {
-    update: (data: { name?: string; phone?: string }) =>
+    update: (data: { name?: string; phone?: string; vibrationPreference?: boolean }) =>
       request<{ user: User }>('/customer/profile', { method: 'PUT', body: data }),
   },
 
@@ -101,5 +131,7 @@ export const api = {
       request('/notifications/push-token', { body: { token, platform, deviceName: 'Mobile app' } }),
     unregister: (token: string) =>
       request('/notifications/push-token', { method: 'DELETE', body: { token } }),
+    testPush: () =>
+      request<{ message: string; sent: number; devices: number }>('/notifications/test-push', { method: 'POST' }),
   },
 };

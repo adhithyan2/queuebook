@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import {
   HiOutlineStar, HiOutlineMapPin, HiOutlinePhone, HiOutlineClock,
   HiOutlineUsers, HiOutlineArrowRight, HiCheckBadge, HiOutlineHashtag,
+  HiOutlineSparkles, HiOutlineFire,
 } from 'react-icons/hi2';
 import { customerAPI } from '../../services/api';
+import { HourlyCrowdBars, CrowdLevelBadge, CrowdLegend, SourceNote } from '../../components/crowd/CrowdTiming';
 
 export default function PublicBusinessPage() {
   const { businessId } = useParams();
@@ -13,12 +15,20 @@ export default function PublicBusinessPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [bestTimes, setBestTimes] = useState(null);
+  const [crowd, setCrowd] = useState(null);
 
   useEffect(() => {
     customerAPI.getBusinessPublic(businessId)
       .then((res) => setData(res.data))
       .catch((e) => setError(e.response?.data?.message || 'Business not found'))
       .finally(() => setLoading(false));
+    customerAPI.getBestTimes(businessId)
+      .then((res) => setBestTimes(res.data))
+      .catch(() => {});
+    customerAPI.getCrowdAnalytics(businessId)
+      .then((res) => setCrowd(res.data))
+      .catch(() => {});
   }, [businessId]);
 
   if (loading) {
@@ -111,6 +121,53 @@ export default function PublicBusinessPage() {
           </div>
         )}
 
+        {(bestTimes || crowd) && (
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                <HiOutlineSparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">QueueBook Smart Timing</h2>
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">Busy hours &amp; best time to visit</p>
+              </div>
+            </div>
+
+            {bestTimes?.best?.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2 flex items-center gap-1.5">
+                  <HiOutlineSparkles className="w-3.5 h-3.5 text-amber-500" /> Best times to visit
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {bestTimes.best.map((b, i) => (
+                    <div key={b.date + b.time} className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 p-3">
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold capitalize">
+                        {i === 0 ? 'Best pick' : i === 1 ? 'Runner-up' : 'Also quiet'} · {b.dateLabel}
+                      </p>
+                      <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mt-1">{b.time}</p>
+                      <div className="mt-1.5"><CrowdLevelBadge level={b.crowdLevel} /></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {crowd?.hourly?.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2 flex items-center gap-1.5">
+                  <HiOutlineFire className="w-3.5 h-3.5 text-orange-500" />
+                  Crowd by hour
+                  {crowd.peakHour && <span className="text-[10px] font-semibold text-orange-500 ml-auto">Peak ~{crowd.peakHour.label}</span>}
+                </h3>
+                <HourlyCrowdBars hourly={crowd.hourly} height="h-24" compact />
+                <div className="mt-3"><CrowdLegend /></div>
+              </div>
+            )}
+
+            <div className="mt-4"><SourceNote source={bestTimes?.source || crowd?.source} /></div>
+          </div>
+        )}
+
         {business.services?.length > 0 && (
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5">
             <h2 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Services</h2>
@@ -118,7 +175,7 @@ export default function PublicBusinessPage() {
               {business.services.map((s) => (
                 <div key={s.name} className="flex items-center justify-between py-2 border-b border-zinc-50 dark:border-zinc-800/50 last:border-0">
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{s.name}</span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">{s.duration} min{s.price ? ` · $${s.price}` : ''}</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">{s.duration} min{s.price ? ` · ₹${s.price}` : ''}</span>
                 </div>
               ))}
             </div>
