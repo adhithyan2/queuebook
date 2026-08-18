@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeCanvas } from 'qrcode.react';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
-import { HiOutlineQrCode, HiOutlineArrowDownTray } from 'react-icons/hi2';
+import { HiOutlineQrCode, HiOutlineArrowDownTray, HiOutlinePlus, HiOutlineMagnifyingGlass, HiOutlineCheckCircle } from 'react-icons/hi2';
 import { useSocket } from '../../context/SocketContext';
-import { queueAPI } from '../../services/api';
+import { queueAPI, customerAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 
 const QueuePage = () => {
@@ -12,6 +12,14 @@ const QueuePage = () => {
   const [loading, setLoading] = useState(true);
   const socket = useSocket();
   const qrCanvasRefs = useRef({});
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinSearch, setJoinSearch] = useState('');
+  const [joinResults, setJoinResults] = useState([]);
+  const [joinSearching, setJoinSearching] = useState(false);
+  const [selectedBiz, setSelectedBiz] = useState(null);
+  const [selectedService, setSelectedService] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState('');
 
   const downloadQR = (queue) => {
     const canvas = qrCanvasRefs.current[queue._id];
@@ -41,6 +49,59 @@ const QueuePage = () => {
   useEffect(() => {
     fetchQueues();
   }, [fetchQueues]);
+
+  const searchBusinesses = useCallback(async (q) => {
+    if (!q.trim()) { setJoinResults([]); return; }
+    setJoinSearching(true);
+    try {
+      const res = await customerAPI.getExplore({ search: q.trim() });
+      setJoinResults(res.data.businesses || []);
+    } catch {
+      setJoinResults([]);
+    } finally {
+      setJoinSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => searchBusinesses(joinSearch), 300);
+    return () => clearTimeout(t);
+  }, [joinSearch, searchBusinesses]);
+
+  const handleSelectBiz = (biz) => {
+    setSelectedBiz(biz);
+    setSelectedService(biz.services?.[0]?.name || '');
+    setJoinError('');
+  };
+
+  const handleJoinQueue = async () => {
+    if (!selectedBiz) return;
+    setJoining(true);
+    setJoinError('');
+    try {
+      await queueAPI.join({
+        business: selectedBiz._id,
+        service: selectedService || undefined,
+      });
+      setShowJoinModal(false);
+      setSelectedBiz(null);
+      setJoinSearch('');
+      setJoinResults([]);
+      await fetchQueues();
+    } catch (err) {
+      setJoinError(err.response?.data?.message || 'Failed to join queue');
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const closeJoinModal = () => {
+    setShowJoinModal(false);
+    setSelectedBiz(null);
+    setJoinSearch('');
+    setJoinResults([]);
+    setJoinError('');
+  };
 
   useEffect(() => {
     if (socket) {
@@ -101,13 +162,22 @@ const QueuePage = () => {
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-          My Queue
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          Track your queue status in real-time
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            My Queue
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Track your queue status in real-time
+          </p>
+        </div>
+        <button
+          onClick={() => setShowJoinModal(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #6D5EF7, #8B5CF6)' }}
+        >
+          <HiOutlinePlus className="w-4 h-4" /> Join Queue
+        </button>
       </div>
 
       {queues.length === 0 ? (
@@ -241,6 +311,145 @@ const QueuePage = () => {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {showJoinModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={closeJoinModal}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-md border border-zinc-100 dark:border-zinc-800 shadow-xl"
+            >
+              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">Join a Queue</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+                Walk in and join a business queue directly — no appointment needed.
+              </p>
+
+              {!selectedBiz ? (
+                <>
+                  <div className="relative mb-3">
+                    <HiOutlineMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    <input
+                      type="text"
+                      placeholder="Search for a business…"
+                      value={joinSearch}
+                      onChange={(e) => setJoinSearch(e.target.value)}
+                      autoFocus
+                      className="w-full pl-10 pr-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6D5EF7]/40 focus:border-[#6D5EF7] transition-all"
+                    />
+                  </div>
+
+                  <div className="max-h-56 overflow-y-auto space-y-1">
+                    {joinSearching && (
+                      <div className="flex items-center justify-center py-6">
+                        <div className="w-5 h-5 border-2 border-[#6D5EF7]/20 border-t-[#6D5EF7] rounded-full animate-spin" />
+                      </div>
+                    )}
+                    {!joinSearching && joinResults.length === 0 && joinSearch.trim() && (
+                      <p className="text-xs text-zinc-400 text-center py-6">No businesses found</p>
+                    )}
+                    {!joinSearching && joinResults.length === 0 && !joinSearch.trim() && (
+                      <p className="text-xs text-zinc-400 text-center py-6">Type to search for a business</p>
+                    )}
+                    {joinResults.map((biz) => (
+                      <button
+                        key={biz._id}
+                        onClick={() => handleSelectBiz(biz)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-left"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-[#6D5EF7]/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-[#6D5EF7]">{biz.name?.charAt(0)?.toUpperCase()}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{biz.name}</p>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize">{biz.category} · {biz.liveQueue?.waiting ?? 0} waiting</p>
+                        </div>
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${biz.isOpen ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-500'}`}>
+                          {biz.isOpen ? 'Open' : 'Closed'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#6D5EF7]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-[#6D5EF7]">{selectedBiz.name?.charAt(0)?.toUpperCase()}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selectedBiz.name}</p>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize">{selectedBiz.category}</p>
+                    </div>
+                    <button
+                      onClick={() => { setSelectedBiz(null); setSelectedService(''); setJoinError(''); }}
+                      className="text-[11px] text-[#6D5EF7] hover:underline font-medium"
+                    >
+                      Change
+                    </button>
+                  </div>
+
+                  {selectedBiz.services?.length > 0 && (
+                    <div className="mb-4">
+                      <label className="block text-[13px] font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Service (optional)</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedBiz.services.filter((s) => s.isAvailable !== false).map((s) => (
+                          <button
+                            key={s.name}
+                            onClick={() => setSelectedService(s.name)}
+                            className={`px-3 py-2 rounded-xl text-left text-xs font-medium transition-all ${
+                              selectedService === s.name
+                                ? 'bg-[#6D5EF7]/10 border border-[#6D5EF7] text-zinc-900 dark:text-zinc-100'
+                                : 'bg-zinc-50 dark:bg-zinc-800 border border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                            }`}
+                          >
+                            {s.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {joinError && (
+                    <p className="text-xs text-red-500 mb-3">{joinError}</p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={closeJoinModal}
+                      className="flex-1 h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleJoinQueue}
+                      disabled={joining}
+                      className="flex-1 h-10 rounded-xl text-white text-sm font-semibold disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
+                      style={{ background: 'linear-gradient(135deg, #6D5EF7, #8B5CF6)' }}
+                    >
+                      {joining ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <HiOutlineCheckCircle className="w-4 h-4" /> Join Queue
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

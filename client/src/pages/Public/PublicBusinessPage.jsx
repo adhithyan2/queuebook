@@ -208,12 +208,20 @@ export default function PublicBusinessPage() {
           </div>
         )}
 
-        <button
-          onClick={() => navigate(`/login?redirect=/customer/book/${businessId}`)}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Book an Appointment <HiOutlineArrowRight className="w-4 h-4" />
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate(`/login?redirect=/customer/queue`)}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-indigo-500/30 text-indigo-400 text-sm font-semibold hover:bg-indigo-500/10 transition-colors"
+          >
+            <HiOutlineUsers className="w-4 h-4" /> Join Queue
+          </button>
+          <button
+            onClick={() => navigate(`/login?redirect=/customer/book/${businessId}`)}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Book Appointment <HiOutlineArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
