@@ -1,0 +1,6 @@
+# Root-level build artifacts
+resources.arsc
+
+# OS
+.DS_Store
+Thumbs.db

@@ -17,6 +17,7 @@ const PublicBusinessPage = lazy(() => import('../pages/Public/PublicBusinessPage
 const CustomerDashboardPage = lazy(() => import('../pages/Customer/DashboardPage'));
 const CustomerAppointmentsPage = lazy(() => import('../pages/Customer/AppointmentsPage'));
 const CustomerQueuePage = lazy(() => import('../pages/Customer/QueuePage'));
+const CustomerPaymentPage = lazy(() => import('../pages/Customer/PaymentPage'));
 const CustomerNearbyPage = lazy(() => import('../pages/Customer/NearbyPage'));
 const CustomerExplorePage = lazy(() => import('../pages/Customer/ExplorePage'));
 const CustomerBookPage = lazy(() => import('../pages/Customer/BookPage'));
@@ -76,6 +77,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute roles={['customer']}><CustomerLayout /></ProtectedRoute>}>
           <Route path="/customer/dashboard" element={<CustomerDashboardPage />} />
           <Route path="/customer/appointments" element={<CustomerAppointmentsPage />} />
+          <Route path="/customer/appointments/:id/pay" element={<CustomerPaymentPage />} />
           <Route path="/customer/queue" element={<CustomerQueuePage />} />
           <Route path="/customer/nearby" element={<CustomerNearbyPage />} />
           <Route path="/customer/explore" element={<CustomerExplorePage />} />
@@ -92,6 +94,7 @@ export default function AppRoutes() {
           <Route path="/business/analytics" element={<BusinessAnalyticsPage />} />
           <Route path="/business/reviews" element={<BusinessReviewsPage />} />
           <Route path="/business/profile" element={<BusinessProfilePage />} />
+          <Route path="/business/notifications" element={<CustomerNotificationsPage />} />
         </Route>
 
         {/* Admin Route */}

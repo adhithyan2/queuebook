@@ -60,15 +60,18 @@ export default function QueueScreen() {
   const router = useRouter();
   const isFocused = useIsFocused();
   const [queues, setQueues] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const data = await api.queue.my();
-      const queues = data.queues || [];
+      const [qData, aData] = await Promise.all([api.queue.my(), api.appointments.getAll()]);
+      const queues = qData.queues || [];
       setQueues(queues);
+      setAppointments(aData.appointments || []);
       queues.forEach((q) => joinQueueRoom(q._id));
     } catch (err) {
       console.warn('Queue load error:', err);
@@ -118,8 +121,29 @@ export default function QueueScreen() {
     ]);
   };
 
+  const handleCheckIn = async (apptId: string) => {
+    setCheckingIn(apptId);
+    try {
+      const res = await api.appointments.checkin(apptId);
+      Alert.alert(
+        'Checked in',
+        res.late
+          ? `Your appointment time has passed, but you have been placed in the queue. Token Q${res.queue?.tokenNumber}. Please check in with the staff.`
+          : `You are now in the queue with token Q${res.queue?.tokenNumber}.`,
+        [{ text: 'OK', onPress: () => load() }]
+      );
+    } catch (err: any) {
+      Alert.alert('Check-in failed', err?.message || 'Could not check in right now.');
+    } finally {
+      setCheckingIn(null);
+    }
+  };
+
   const active = queues.find((q) => ['waiting', 'called'].includes(q.status));
   const past = queues.filter((q) => !['waiting', 'called'].includes(q.status));
+  const scheduled = appointments.filter(
+    (a) => !a.queueEntryId && ['scheduled', 'pending', 'confirmed'].includes(a.status)
+  );
 
   return (
     <ScrollView
@@ -144,7 +168,7 @@ export default function QueueScreen() {
 
           <Card style={[styles.queueCard, { borderColor: theme.tint }]}>
             <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>
-              {active.business?.name || 'Business'}
+              {active.business?.name || 'Business unavailable'}
             </Text>
             <View style={styles.queueRow}>
               <View style={[styles.tokenBox, { backgroundColor: theme.tint }]}>
@@ -208,13 +232,59 @@ export default function QueueScreen() {
           {past.map((q) => (
             <Card key={q._id} style={styles.pastCard}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.itemTitle, { color: theme.text }]}>{q.business?.name || 'Business'}</Text>
+                <Text style={[styles.itemTitle, { color: theme.text }]}>{q.business?.name || 'Business unavailable'}</Text>
                 <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
                   Q{q.tokenNumber} · {STATUS_LABEL[q.status] || q.status}
                 </Text>
               </View>
             </Card>
           ))}
+        </View>
+      )}
+
+      {scheduled.length > 0 && (
+        <View style={{ marginTop: Spacing.four }}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Appointments</Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: Spacing.two }}>
+            Check in when you arrive to receive your live queue token.
+          </Text>
+          {scheduled.map((a) => {
+            const pendingPay = a.paymentStatus === 'pending' || a.paymentStatus === 'failed';
+            return (
+              <Card key={a._id} style={styles.pastCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.itemTitle, { color: theme.text }]}>
+                    {a.business?.name || 'Appointment'}
+                  </Text>
+                  <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                    {a.service}
+                    {a.timeSlot ? ` · ${a.timeSlot}` : ''}
+                    {a.staffName ? ` · ${a.staffName}` : ''}
+                  </Text>
+                  {a.expectedStartTime && a.expectedEndTime ? (
+                    <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                      Expected service: {a.expectedStartTime} – {a.expectedEndTime}
+                    </Text>
+                  ) : null}
+                  <Text style={{ color: theme.textSecondary, fontSize: 12 }}>Status: Scheduled</Text>
+                  {pendingPay ? (
+                    <Pressable onPress={() => router.push(`/appointment/${a._id}/pay`)}>
+                      <Text style={{ color: theme.tint, fontSize: 12, fontWeight: '700', marginTop: 4 }}>
+                        Advance payment pending · Pay now ›
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+                <Button
+                  title="Check In"
+                  variant="secondary"
+                  loading={checkingIn === a._id}
+                  onPress={() => handleCheckIn(a._id)}
+                  style={{ marginTop: Spacing.two }}
+                />
+              </Card>
+            );
+          })}
         </View>
       )}
     </ScrollView>

@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import CustomerSidebar from '../components/layout/CustomerSidebar';
 import Navbar from '../components/layout/Navbar';
 import Container from '../components/ui/Container';
+import VoiceAssistant from '../components/voice/VoiceAssistant';
 
 export default function CustomerLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,6 +26,7 @@ export default function CustomerLayout() {
           </main>
         </Container>
       </div>
+      <VoiceAssistant />
     </div>
   );
 }

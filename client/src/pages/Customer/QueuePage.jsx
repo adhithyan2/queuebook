@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeCanvas } from 'qrcode.react';
 import { HiOutlineUsers, HiOutlineClock, HiOutlineBell, HiOutlineTrendingUp } from 'react-icons/hi';
@@ -25,9 +25,22 @@ const QueuePage = () => {
     link.remove();
   };
 
+  const fetchQueues = useCallback(async () => {
+    try {
+      const response = await queueAPI.getMyQueue();
+      const items = response.data.queues || [];
+      setQueues(items);
+      items.forEach((q) => socket?.emit('join-queue-room', q._id));
+    } catch (error) {
+      console.error('Failed to fetch queues:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [socket]);
+
   useEffect(() => {
     fetchQueues();
-  }, []);
+  }, [fetchQueues]);
 
   useEffect(() => {
     if (socket) {
@@ -47,29 +60,31 @@ const QueuePage = () => {
     }
   }, [socket]);
 
-  const fetchQueues = async () => {
-    try {
-      const response = await queueAPI.getMyQueue();
-      const items = response.data.queues || [];
-      setQueues(items);
-      items.forEach((q) => socket?.emit('join-queue-room', q._id));
-    } catch (error) {
-      console.error('Failed to fetch queues:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (position) => {
-    if (position === 1) return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10';
-    if (position <= 3) return 'text-amber-600 bg-amber-50 dark:bg-amber-500/10';
+  const getStatusColor = (queue) => {
+    if (queue.status === 'called') return 'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10';
+    if (queue.status === 'completed') return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10';
+    if (queue.status === 'skipped') return 'text-zinc-600 bg-zinc-50 dark:bg-zinc-500/10';
+    if (queue.position === 1) return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10';
+    if (queue.position === 2) return 'text-amber-600 bg-amber-50 dark:bg-amber-500/10';
     return 'text-zinc-600 bg-zinc-50 dark:bg-zinc-500/10';
   };
 
-  const getStatusText = (position) => {
-    if (position === 1) return "You're next!";
-    if (position === 2) return '1 person ahead';
-    return `${position - 1} people ahead`;
+  const getStatusText = (queue) => {
+    if (queue.status === 'called') return "You're being served now!";
+    if (queue.status === 'completed') return 'Your visit is complete. Thank you!';
+    if (queue.status === 'skipped') return 'This queue entry was skipped.';
+    if (queue.position === 1) return "You're next!";
+    if (queue.position === 2) return '1 person ahead';
+    if (queue.position != null && queue.position > 2) return `${queue.position - 1} people ahead`;
+    return queue.status || 'In queue';
+  };
+
+  const statusBadgeVariant = (status) => {
+    if (status === 'called') return 'called';
+    if (status === 'completed') return 'completed';
+    if (status === 'skipped') return 'skipped';
+    if (status === 'cancelled') return 'cancelled';
+    return 'waiting';
   };
 
   if (loading) {
@@ -126,48 +141,53 @@ const QueuePage = () => {
                     </p>
                   </div>
                 </div>
-                <Badge variant={queue.status === 'waiting' ? 'waiting' : 'active'}>
-                  {queue.status}
+                <Badge variant={statusBadgeVariant(queue.status)}>
+                  {queue.status === 'called' ? 'Being Served' : queue.status.replace('_', ' ')}
                 </Badge>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-zinc-500 dark:text-zinc-400">Position</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">#{queue.position}</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {queue.position != null ? `#${queue.position}` : '—'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-zinc-500 dark:text-zinc-400">Estimated Wait</span>
                   <span className="flex items-center gap-1 font-medium text-zinc-900 dark:text-zinc-100">
                     <HiOutlineClock className="w-4 h-4" />
-                    {queue.estimatedWaitTime} min
+                    {queue.estimatedWaitTime != null ? `${queue.estimatedWaitTime} min` : '—'}
                   </span>
                 </div>
+                {queue.peopleAhead != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400">People Ahead</span>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{queue.peopleAhead}</span>
+                  </div>
+                )}
+                {queue.currentToken != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400">Currently Serving</span>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">Q{String(queue.currentToken).padStart(3, '0')}</span>
+                  </div>
+                )}
+                {queue.service && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400">Service</span>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{queue.service}{queue.staffName ? ` · ${queue.staffName}` : ''}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="text-zinc-500 dark:text-zinc-400">Progress</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {Math.max(0, 100 - (queue.position * 20))}%
-                  </span>
-                </div>
-                <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(0, 100 - (queue.position * 20))}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className={`mt-4 p-3 rounded-xl ${getStatusColor(queue.position)}`}>
+              <div className={`mt-4 p-3 rounded-xl ${getStatusColor(queue)}`}>
                 <div className="flex items-center gap-2">
-                  {queue.position <= 2 ? (
+                  {queue.status === 'called' || queue.position <= 2 ? (
                     <HiOutlineBell className="w-4 h-4" />
                   ) : (
                     <HiOutlineTrendingUp className="w-4 h-4" />
                   )}
-                  <span className="text-xs font-medium">{getStatusText(queue.position)}</span>
+                  <span className="text-xs font-medium">{getStatusText(queue)}</span>
                 </div>
               </div>
 

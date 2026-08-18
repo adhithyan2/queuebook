@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 
 import { Button, TextField } from '@/components/ui/form';
@@ -39,9 +39,11 @@ export default function LoginScreen() {
       style={[styles.flex, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <View style={[styles.logo, { backgroundColor: theme.tint }]}>
-            <Text style={styles.logoText}>Q</Text>
-          </View>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={[styles.title, { color: theme.text }]}>Welcome back</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Sign in to QueueBook to book and track your queue
@@ -97,17 +99,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logo: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
     marginBottom: 8,
-  },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 32,
-    fontWeight: '700',
   },
   title: {
     fontSize: 24,

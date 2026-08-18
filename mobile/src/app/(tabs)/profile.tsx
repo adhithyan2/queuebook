@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Button, Card, TextField } from '@/components/ui/form';
 import { useAuth } from '@/context/auth';
 import { api } from '@/services/api';
-import { disablePush, getPushToken, isPushEnabled, isPushSupported } from '@/services/push';
+import { disablePush, getPushToken, getPushUnsupportedReason, isPushEnabled, isPushSupported } from '@/services/push';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -20,9 +20,25 @@ export default function ProfileScreen() {
   const [saved, setSaved] = useState(false);
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
+  const [vibrationOn, setVibrationOn] = useState(user?.vibrationPreference !== false);
+  const [vibrationBusy, setVibrationBusy] = useState(false);
 
   useEffect(() => {
-    isPushEnabled().then(setPushOn);
+    isPushEnabled()
+      .then(async (enabled) => {
+        if (enabled && isPushSupported()) {
+          try {
+            const token = await getPushToken();
+            setPushOn(Boolean(token));
+          } catch {
+            setPushOn(false);
+          }
+        } else {
+          setPushOn(enabled);
+        }
+      })
+      .catch(() => setPushOn(false));
   }, []);
 
   const handleSave = async () => {
@@ -45,8 +61,9 @@ export default function ProfileScreen() {
       if (value) {
         if (!isPushSupported()) {
           Alert.alert(
-            'Push unavailable in Expo Go',
-            'Android remote push notifications require a development build (Expo Go removed them in SDK 53+). Sign-in, explore, booking, queue and notifications still work normally here.'
+            'Push unavailable here',
+            getPushUnsupportedReason() ||
+              'Remote push notifications are not available in this environment. Install the QueueBook development build on a physical Android device.'
           );
           setPushOn(false);
           return;
@@ -62,8 +79,46 @@ export default function ProfileScreen() {
         await disablePush();
         setPushOn(false);
       }
+    } catch (err: any) {
+      setPushOn(false);
+      const raw = err?.message || '';
+      const firebaseMissing = /googleServicesFile|FirebaseApp is not initialized|Unable to get Firebase|firebase-messaging|firebase/i.test(raw);
+      Alert.alert(
+        'Push failed to enable',
+        firebaseMissing
+          ? 'Push notifications are not configured for this Android build. Add the Firebase Android configuration (google-services.json) and rebuild the app.'
+          : raw || 'Could not register this device. Check your network connection and try again.'
+      );
     } finally {
       setPushBusy(false);
+    }
+  };
+
+  const sendTestPush = async () => {
+    setTestBusy(true);
+    try {
+      const res = await api.push.testPush();
+      Alert.alert(
+        res.sent > 0 ? 'Test push sent' : 'Test push not delivered',
+        `${res.sent} of ${res.devices} device(s) reached. Check your phone's notification tray (background the app to confirm).`
+      );
+    } catch (err: any) {
+      Alert.alert('Test push failed', err?.message || 'Could not send a test push right now.');
+    } finally {
+      setTestBusy(false);
+    }
+  };
+
+  const toggleVibration = async (value: boolean) => {
+    setVibrationBusy(true);
+    try {
+      const res = await api.profile.update({ vibrationPreference: value });
+      setUser(res.user);
+      setVibrationOn(value);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update settings');
+    } finally {
+      setVibrationBusy(false);
     }
   };
 
@@ -115,7 +170,7 @@ export default function ProfileScreen() {
             </Text>
             {!isPushSupported() ? (
               <Text style={{ color: theme.danger, fontSize: 12, marginTop: 4 }}>
-                Remote push is disabled in Expo Go on Android. It works in a development build.
+                Remote push needs the QueueBook development build on a physical Android device (not Expo Go).
               </Text>
             ) : null}
           </View>
@@ -123,6 +178,33 @@ export default function ProfileScreen() {
             value={pushOn}
             onValueChange={togglePush}
             disabled={pushBusy}
+            trackColor={{ false: theme.border, true: theme.tint }}
+            thumbColor="#ffffff"
+          />
+        </View>
+        {pushOn ? (
+          <Button
+            title="Send test push"
+            variant="secondary"
+            onPress={sendTestPush}
+            loading={testBusy}
+            style={{ marginTop: Spacing.two }}
+          />
+        ) : null}
+      </Card>
+
+      <Card style={styles.pushCard}>
+        <View style={styles.pushRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.itemTitle, { color: theme.text }]}>Vibration notifications</Text>
+            <Text style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>
+              Vibrate this device when your turn is near or called, including push notifications.
+            </Text>
+          </View>
+          <Switch
+            value={vibrationOn}
+            onValueChange={toggleVibration}
+            disabled={vibrationBusy}
             trackColor={{ false: theme.border, true: theme.tint }}
             thumbColor="#ffffff"
           />

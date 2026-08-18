@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
-import { HiOutlineXMark, HiOutlineArrowPath } from 'react-icons/hi2';
+import { HiOutlineXMark, HiOutlineArrowPath, HiOutlineCreditCard, HiOutlineCheckCircle } from 'react-icons/hi2';
 import { appointmentAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 import VerifiedBadge from '../../components/ui/VerifiedBadge';
@@ -11,8 +11,21 @@ const tabs = ['Upcoming', 'Past', 'All'];
 const statusVariant = {
   confirmed: 'confirmed',
   pending: 'pending',
+  scheduled: 'scheduled',
+  checked_in: 'checked_in',
+  in_progress: 'in_progress',
   completed: 'completed',
   cancelled: 'cancelled',
+  no_show: 'no_show',
+  skipped: 'skipped',
+};
+
+const statusLabel = {
+  in_progress: 'In Progress',
+  no_show: 'No Show',
+  scheduled: 'Scheduled',
+  checked_in: 'Checked In',
+  skipped: 'Skipped',
 };
 
 const AppointmentsPage = () => {
@@ -20,6 +33,7 @@ const AppointmentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Upcoming');
   const [busyId, setBusyId] = useState(null);
+  const [checkingInId, setCheckingInId] = useState(null);
   const [rescheduleFor, setRescheduleFor] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
@@ -40,8 +54,8 @@ const AppointmentsPage = () => {
   };
 
   const filteredAppointments = appointments.filter((apt) => {
-    if (activeTab === 'Upcoming') return apt.status === 'pending' || apt.status === 'confirmed';
-    if (activeTab === 'Past') return apt.status === 'completed' || apt.status === 'cancelled';
+    if (activeTab === 'Upcoming') return ['pending', 'confirmed', 'scheduled', 'checked_in', 'in_progress'].includes(apt.status);
+    if (activeTab === 'Past') return ['completed', 'cancelled', 'no_show', 'skipped'].includes(apt.status);
     return true;
   });
 
@@ -55,6 +69,22 @@ const AppointmentsPage = () => {
       alert(error.response?.data?.message || 'Failed to cancel appointment');
     }
     setBusyId(null);
+  };
+
+  const handleCheckIn = async (id) => {
+    setCheckingInId(id);
+    try {
+      const res = await appointmentAPI.checkIn(id);
+      alert(
+        res.data?.late
+          ? `Your appointment time has passed, but you have been placed in the queue. Token Q${res.data?.queue?.tokenNumber}. Please check in with the staff.`
+          : `You are now in the queue with token Q${res.data?.queue?.tokenNumber}.`
+      );
+      await fetchAppointments();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Could not check in right now.');
+    }
+    setCheckingInId(null);
   };
 
   const openReschedule = (apt) => {
@@ -163,7 +193,7 @@ const AppointmentsPage = () => {
                   </div>
                 </div>
                 <Badge variant={statusVariant[appointment.status] || 'default'}>
-                  {appointment.status}
+                  {statusLabel[appointment.status] || appointment.status}
                 </Badge>
               </div>
 
@@ -179,7 +209,37 @@ const AppointmentsPage = () => {
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   Token {appointment.tokenNumber ?? '—'}
                 </span>
+                {(appointment.paymentStatus === 'pending' || appointment.paymentStatus === 'failed') && (
+                  <a
+                    href={`/customer/appointments/${appointment._id}/pay`}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
+                  >
+                    <HiOutlineCreditCard className="w-3.5 h-3.5" /> Advance pending · Pay
+                  </a>
+                )}
+                {appointment.paymentStatus === 'paid' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-full">
+                    Advance paid
+                  </span>
+                )}
                 <div className="flex-1" />
+                {appointment.status === 'checked_in' && appointment.queueEntryId && (
+                  <a
+                    href="/customer/queue"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-500/20 transition-colors"
+                  >
+                    <HiOutlineCheckCircle className="w-3.5 h-3.5" /> In queue · Track
+                  </a>
+                )}
+                {!appointment.queueEntryId && ['pending', 'confirmed', 'scheduled'].includes(appointment.status) && (
+                  <button
+                    onClick={() => handleCheckIn(appointment._id)}
+                    disabled={checkingInId === appointment._id}
+                    className="px-3 py-1.5 text-[11px] font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <HiOutlineCheckCircle className="w-3.5 h-3.5" /> {checkingInId === appointment._id ? 'Checking in…' : 'Check in'}
+                  </button>
+                )}
                 {['pending', 'confirmed'].includes(appointment.status) && (
                   <>
                     <button

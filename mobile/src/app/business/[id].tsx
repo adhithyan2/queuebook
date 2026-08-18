@@ -64,7 +64,7 @@ export default function BusinessScreen() {
           <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>LIVE QUEUE</Text>
           <View style={styles.queueStats}>
             <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{liveQueue.waiting ?? 0}</Text>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{liveQueue.waiting != null ? liveQueue.waiting : '—'}</Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Waiting</Text>
             </View>
             <View style={styles.stat}>
@@ -72,7 +72,7 @@ export default function BusinessScreen() {
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Serving</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{liveQueue.estimatedWait ?? 0}m</Text>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{liveQueue.estimatedWait != null ? `${liveQueue.estimatedWait}m` : '—'}</Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Wait</Text>
             </View>
           </View>

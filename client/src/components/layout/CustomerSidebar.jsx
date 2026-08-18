@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import {
   HiOutlineViewGrid, HiOutlineCalendar, HiOutlineClipboardList,
-  HiOutlineLocationMarker, HiOutlineMap, HiOutlineBell, HiOutlineUser, HiOutlineCog,
-  HiOutlineSupport, HiOutlineLogout, HiOutlineX, HiOutlinePlus
+  HiOutlineLocationMarker, HiOutlineMap, HiOutlineBell, HiOutlineUser,
+  HiOutlineLogout, HiOutlineX
 } from 'react-icons/hi';
 
 const navItems = [
@@ -15,11 +15,6 @@ const navItems = [
   { path: '/customer/explore', label: 'Explore', icon: HiOutlineMap },
   { path: '/customer/notifications', label: 'Notifications', icon: HiOutlineBell },
   { path: '/customer/profile', label: 'Profile', icon: HiOutlineUser },
-];
-
-const bottomItems = [
-  { path: '/support', label: 'Support', icon: HiOutlineSupport },
-  { path: '/settings', label: 'Settings', icon: HiOutlineCog },
 ];
 
 export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarCollapsed }) {
@@ -44,11 +39,8 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2.5 px-5 pt-6 pb-5 flex-shrink-0">
-        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-          <HiOutlinePlus className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-base font-bold gradient-text tracking-tight">QueueBook</span>
+      <div className="flex items-center px-5 pt-6 pb-5 flex-shrink-0">
+        <img src="/queuebook-logo.png" alt="QueueBook" className="h-8 w-auto object-contain bg-white rounded-lg px-2 py-1" />
       </div>
 
       <nav className="flex-1 py-3 flex flex-col gap-0.5 overflow-y-auto">
@@ -56,7 +48,6 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
       </nav>
 
       <div className="py-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-0.5">
-        {bottomItems.map((item) => <NavLink key={item.path} item={item} />)}
         <button onClick={logout}
           className="flex items-center gap-3 px-3 mx-3 h-10 rounded-xl text-[13px] font-medium text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:text-zinc-400 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-colors w-full">
           <HiOutlineLogout className="w-[18px] h-[18px] flex-shrink-0" />
@@ -94,13 +85,8 @@ export default function CustomerSidebar({ mobileOpen, onMobileClose, sidebarColl
             <motion.aside key="sidebar" initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed left-0 top-0 h-screen w-[260px] bg-white dark:bg-zinc-950 z-50 lg:hidden shadow-2xl">
-              <div className="flex items-center justify-between px-5 py-5 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center">
-                    <HiOutlinePlus className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="text-base font-bold gradient-text tracking-tight">QueueBook</span>
-                </div>
+              <div className="flex items-center px-5 py-5 border-b border-zinc-100 dark:border-zinc-800">
+                <img src="/queuebook-logo.png" alt="QueueBook" className="h-8 w-auto object-contain bg-white rounded-lg px-2 py-1" />
                 <button onClick={onMobileClose} className="p-2 rounded-xl text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                   <HiOutlineX className="w-5 h-5" />
                 </button>

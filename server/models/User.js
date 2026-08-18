@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
   }],
   location: { type: mongoose.Schema.Types.Mixed, default: null },
   avatar: { type: String, default: '' },
+  vibrationPreference: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

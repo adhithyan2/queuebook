@@ -8,6 +8,8 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const setupSocket = require('./socket/queueHandler');
+const { startReminderScheduler } = require('./services/reminderService');
+const { UPLOADS_DIR, PUBLIC_UPLOADS_PATH } = require('./services/storageService');
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ app.use(cors({
 app.use(compression());
 app.use(express.json());
 
+app.use(PUBLIC_UPLOADS_PATH, express.static(UPLOADS_DIR));
+
 app.use('/api/customer', require('./routes/customer'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/auth', require('./routes/auth'));
@@ -40,6 +44,7 @@ app.use('/api/queue', require('./routes/queue'));
 app.use('/api/business', require('./routes/business'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/smart-arrival', require('./routes/smartArrival'));
+app.use('/api/uploads', require('./routes/uploads'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -80,4 +85,5 @@ connectDB().then(async () => {
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
   });
+  startReminderScheduler();
 });

@@ -25,6 +25,7 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
@@ -32,6 +33,10 @@ yarn-error.*
 
 # local env files
 .env*.local
+
+# Firebase (contains private credentials - never commit)
+google-services.json
+GoogleService-Info.plist
 
 # typescript
 *.tsbuildinfo

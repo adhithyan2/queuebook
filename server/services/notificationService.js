@@ -12,12 +12,18 @@ const SMS_CHANNEL = process.env.SMS_CHANNEL === 'whatsapp' ? 'whatsapp' : 'sms';
 const TITLES = {
   otp: 'Phone verification',
   booking_confirmed: 'Booking confirmed',
+  appointment_scheduled: 'Appointment scheduled',
+  appointment_checked_in: 'You are checked in',
   position_update: 'Queue position updated',
   turn_coming: 'Your turn is coming',
+  one_ahead: 'Almost your turn',
   turn_now: 'Your turn is now',
   completed: 'Visit completed',
   cancelled: 'Booking cancelled',
   rescheduled: 'Booking rescheduled',
+  appointment_reminder: 'Appointment reminder',
+  payment_received: 'Payment received',
+  payment_pending_verification: 'Payment awaiting confirmation',
   welcome: 'Welcome to QueueBook',
 };
 
@@ -28,15 +34,31 @@ const TEMPLATES = {
     `QueueBook: Your booking at ${businessName} is confirmed.\n` +
     `Token: ${tokenNumber}\n` +
     `${peopleAhead} people ahead of you.\n` +
-    `Estimated waiting time: ${waitTime} minutes.\n` +
+    (waitTime != null ? `Estimated waiting time: ${waitTime} minutes.\n` : '') +
+    `We'll notify you when your turn is near.`,
+  appointment_scheduled: ({ businessName, date, timeSlot, startTime, endTime, arriveBy, staffName }) =>
+    `QueueBook: Your appointment at ${businessName} is confirmed.\n` +
+    `Appointment: ${timeSlot || ''}${staffName ? ` | Staff: ${staffName}` : ''}\n` +
+    `Expected service: ${startTime || ''} – ${endTime || ''}\n` +
+    `Please arrive by ${arriveBy || timeSlot || ''}.`,
+  appointment_checked_in: ({ businessName, tokenNumber, peopleAhead, waitTime, late }) =>
+    `QueueBook: You are checked in at ${businessName}.\n` +
+    `Token: ${tokenNumber}\n` +
+    `${peopleAhead} people ahead of you.\n` +
+    (waitTime != null ? `Estimated waiting time: ${waitTime} minutes.\n` : '') +
+    (late ? `Note: You arrived after your appointment window. Please check in with the staff.\n` : '') +
     `We'll notify you when your turn is near.`,
   position_update: ({ businessName, peopleAhead, waitTime }) =>
     `QueueBook: Queue position update at ${businessName}.\n` +
     `${peopleAhead} people ahead of you.\n` +
-    `Estimated waiting time: ${waitTime} minutes.`,
+    (waitTime != null ? `Estimated waiting time: ${waitTime} minutes.` : ''),
   turn_coming: ({ businessName, minutes }) =>
-    `QueueBook Alert: Your turn is approaching.\n` +
-    `Please reach ${businessName} within approximately ${minutes} minutes.`,
+    minutes != null
+      ? `QueueBook Alert: Your turn is approaching.\nPlease reach ${businessName} within approximately ${minutes} minutes.`
+      : `QueueBook Alert: Your turn at ${businessName} is approaching.\nPlease stay close.`,
+  one_ahead: ({ businessName }) =>
+    `QueueBook Alert: Only 1 person ahead of you at ${businessName}.\n` +
+    `Please get ready for your turn.`,
   turn_now: ({ businessName, tokenNumber }) =>
     `QueueBook Alert: Your turn is now.\n` +
     `Please reach ${businessName} immediately. Token ${tokenNumber} is being served.`,
@@ -47,6 +69,15 @@ const TEMPLATES = {
     `QueueBook: Your token ${tokenNumber} at ${businessName} has been cancelled.`,
   rescheduled: ({ businessName, date, timeSlot }) =>
     `QueueBook: Your appointment at ${businessName} has been rescheduled to ${date} at ${timeSlot}.`,
+  appointment_reminder: ({ businessName, date, timeSlot }) =>
+    `QueueBook Reminder: Your appointment at ${businessName} is on ${date} at ${timeSlot}.\n` +
+    `We'll notify you when your turn is near.`,
+  payment_received: ({ businessName, amount, tokenNumber }) =>
+    `QueueBook: Advance payment of ₹${amount} received for your booking at ${businessName}` +
+    `${tokenNumber ? ` (Token ${tokenNumber})` : ''}.`,
+  payment_pending_verification: ({ businessName, amount }) =>
+    `QueueBook: Your advance payment of ₹${amount} for ${businessName} has been submitted. ` +
+    `The business will confirm it before you receive your token.`,
   welcome: ({ businessName }) =>
     `QueueBook: Welcome! Your verified number is set up for queue notifications.`,
 };

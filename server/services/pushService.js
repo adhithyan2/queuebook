@@ -33,6 +33,9 @@ webPush.setVapidDetails(vapidSubject, vapid.publicKey, vapid.privateKey);
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
+const ANDROID_CHANNEL_DEFAULT = 'queuebook-default';
+const ANDROID_CHANNEL_QUIET = 'queuebook-quiet';
+
 function isExpoToken(token) {
   return /^(ExponentPushToken|ExpoPushToken)\[/.test(String(token).trim());
 }
@@ -42,16 +45,31 @@ function isWebSubscription(token) {
   return value.startsWith('{') && value.includes('endpoint');
 }
 
-async function sendExpoPush(tokens, { title, body, data }) {
+/**
+ * Send an Expo push to one or more devices. The message always carries the
+ * fields required for Android to render the tray notification natively while
+ * the app is backgrounded/locked:
+ *   to, title, body, sound: 'default', priority: 'high', data (+ channelId)
+ *
+ * Returns the per-ticket Expo response array (same order as `tokens`).
+ */
+async function sendExpoPush(tokens, { title, body, data, channelId, priority = 'high' }) {
+  const now = Date.now();
   const messages = tokens
     .filter(isExpoToken)
-    .map((token) => ({
-      to: token.trim(),
-      sound: 'default',
-      title,
-      body,
-      data: data || {},
-    }));
+    .map((token, index) => {
+      const uid = `qb-${now}-${index}`;
+      const message = {
+        to: token.trim(),
+        title,
+        body,
+        sound: 'default',
+        priority,
+        data: { ...(data || {}), id: uid, tag: uid },
+      };
+      if (channelId) message.channelId = channelId;
+      return message;
+    });
 
   if (messages.length === 0) return [];
 
@@ -61,9 +79,16 @@ async function sendExpoPush(tokens, { title, body, data }) {
     body: JSON.stringify(messages),
   });
 
-  const result = await res.json();
+  const raw = await res.text();
+  let result;
+  try {
+    result = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`Expo push request failed (${res.status}): non-JSON response`);
+  }
+
   if (!res.ok) {
-    throw new Error(result.message || 'Expo push request failed');
+    throw new Error(result.message || `Expo push request failed (${res.status})`);
   }
   return result.data || [];
 }
@@ -103,20 +128,53 @@ async function sendWebPush(subscriptions, { title, body, data }) {
 /**
  * Send a push notification to every device registered for a user.
  * Returns { expo, web } result summaries.
+ *
+ * The Android channel is chosen from the user's vibration preference so the
+ * native tray notification honors it even when the app is not running:
+ *   - ON  -> queuebook-default (vibrates)
+ *   - OFF -> queuebook-quiet   (sound only, no vibration)
  */
 async function sendUserPush(user, { title, body, data }) {
   const tokens = user?.pushTokens || [];
   if (tokens.length === 0) return { expo: [], web: [], count: 0 };
 
-  const expoTokens = tokens.filter((t) => t.platform === 'expo' || isExpoToken(t.token)).map((t) => t.token);
+  const channelId = user.vibrationPreference === false ? ANDROID_CHANNEL_QUIET : ANDROID_CHANNEL_DEFAULT;
+  const expoEntries = tokens
+    .map((t, index) => ({ index, token: String(t.token), platform: t.platform }))
+    .filter((entry) => entry.platform === 'expo' || isExpoToken(entry.token));
   const webTokens = tokens.filter((t) => t.platform === 'web').map((t) => t.token);
 
   let expo = [];
   let web = [];
 
-  if (expoTokens.length > 0) {
+  if (expoEntries.length > 0) {
+    const expoTokens = expoEntries.map((e) => e.token);
     try {
-      expo = await sendExpoPush(expoTokens, { title, body, data });
+      expo = await sendExpoPush(expoTokens, { title, body, data, channelId });
+
+      // Expo returns one ticket per message, in the same order we sent them.
+      const invalidTokens = [];
+      expo.forEach((ticket, i) => {
+        if (ticket?.status !== 'ok') {
+          const detail = ticket?.details?.error || ticket?.message || 'unknown';
+          console.warn(`Expo push ticket error [${detail}]:`, ticket?.message || JSON.stringify(ticket));
+          if (ticket?.details?.error === 'DeviceNotRegistered') {
+            invalidTokens.push(expoTokens[i]);
+          }
+        }
+      });
+
+      if (invalidTokens.length > 0) {
+        const invalidSet = new Set(invalidTokens);
+        const remaining = tokens.filter((t) => !invalidSet.has(String(t.token)));
+        try {
+          user.pushTokens = remaining;
+          await user.save();
+          console.warn(`Pruned ${invalidTokens.length} invalid Expo device token(s) for user ${user._id}`);
+        } catch (err) {
+          console.error('Failed to prune invalid Expo tokens:', err.message);
+        }
+      }
     } catch (err) {
       console.error('Expo push error:', err.message);
     }

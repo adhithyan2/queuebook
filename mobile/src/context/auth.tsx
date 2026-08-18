@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api, type User } from '@/services/api';
+import { disablePush } from '@/services/push';
 
 type AuthContextType = {
   user: User | null;
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    await disablePush();
     await AsyncStorage.multiRemove(['token', 'user']);
     setUser(null);
   };

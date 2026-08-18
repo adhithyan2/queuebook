@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const Queue = require('../models/Queue');
-const { getTodayRange } = require('../utils/helpers');
+const { computeQueueState } = require('../services/etaService');
 
 let ioInstance = null;
 
@@ -21,63 +20,71 @@ const setupSocket = (io) => {
     }
 
     socket.on('join-business-room', (businessId) => {
-      socket.join(`business:${businessId}`);
+      if (businessId) socket.join(`business:${businessId}`);
+    });
+
+    socket.on('join-public-room', (businessId) => {
+      if (businessId) socket.join(`public:${businessId}`);
     });
 
     socket.on('join-queue-room', (queueId) => {
-      socket.join(`queue:${queueId}`);
+      if (queueId) socket.join(`queue:${queueId}`);
     });
 
     socket.on('queue-update', async (data) => {
-      const { businessId } = data;
-      const { start, end } = getTodayRange();
-      const queue = await Queue.find({
-        business: businessId,
-        queueDate: { $gte: start, $lte: end },
-        status: { $in: ['waiting', 'called'] },
-      })
-        .populate('user', 'name')
-        .sort({ tokenNumber: 1 });
-
-      io.to(`business:${businessId}`).emit('queue-refresh', queue);
-
-      for (const entry of queue) {
-        const peopleAhead = queue.filter(
-          (q) => q.tokenNumber < entry.tokenNumber && q.status === 'waiting'
-        ).length;
-        io.to(`queue:${entry._id}`).emit('position-update', {
-          queueId: entry._id,
-          currentToken: queue.find((q) => q.status === 'called')?.tokenNumber || null,
-          yourToken: entry.tokenNumber,
-          peopleAhead,
-          estimatedWaitTime: peopleAhead * 5,
-        });
-      }
+      const { businessId } = data || {};
+      if (!businessId) return;
+      await broadcastQueueRefresh(businessId);
     });
 
     socket.on('call-next', async (data) => {
-      const { businessId } = data;
-      io.to(`business:${businessId}`).emit('next-called', { called: true });
+      const { businessId } = data || {};
+      if (!businessId) return;
+      await broadcastQueueRefresh(businessId);
     });
 
     socket.on('new-booking', async (data) => {
-      const { businessId } = data;
-      io.to(`business:${businessId}`).emit('booking-notification', {
+      const { businessId } = data || {};
+      if (!businessId) return;
+      emitToBusiness(businessId, 'booking-notification', {
         message: 'New booking received',
         timestamp: new Date(),
       });
-      const { start, end } = getTodayRange();
-      const queue = await Queue.find({
-        business: businessId,
-        queueDate: { $gte: start, $lte: end },
-        status: { $in: ['waiting', 'called'] },
-      })
-        .populate('user', 'name')
-        .sort({ tokenNumber: 1 });
-      io.to(`business:${businessId}`).emit('queue-refresh', queue);
+      await broadcastQueueRefresh(businessId);
     });
   });
 };
+
+/**
+ * Recompute the live queue state for a business and push it everywhere:
+ *  - `queue-refresh`   → business room (full enriched queue array)
+ *  - `queue-state`     → business room + public room (summary snapshot)
+ *  - `position-update` → the queue's own room AND the customer's user room
+ *                        (enriched per-customer payload)
+ *  - `appointments-refresh` → business room
+ */
+async function broadcastQueueRefresh(businessId) {
+  if (!ioInstance || !businessId) return;
+  try {
+    const state = await computeQueueState(businessId);
+
+    ioInstance.to(`business:${businessId}`).emit('queue-refresh', state.queue || []);
+    ioInstance.to(`business:${businessId}`).emit('queue-state', state);
+    ioInstance.to(`public:${businessId}`).emit('queue-state', state);
+    ioInstance.to(`business:${businessId}`).emit('appointments-refresh', {
+      refresh: true,
+      timestamp: new Date(),
+    });
+
+    for (const entry of state.queue || []) {
+      const payload = { ...entry, businessId };
+      if (entry.queueId) ioInstance.to(`queue:${entry.queueId}`).emit('position-update', payload);
+      if (entry.userId) ioInstance.to(`user:${entry.userId}`).emit('position-update', payload);
+    }
+  } catch (err) {
+    console.error('broadcastQueueRefresh error:', err.message);
+  }
+}
 
 function emitToUser(userId, event, payload) {
   if (!ioInstance || !userId) return;
@@ -92,3 +99,4 @@ function emitToBusiness(businessId, event, payload) {
 module.exports = setupSocket;
 module.exports.emitToUser = emitToUser;
 module.exports.emitToBusiness = emitToBusiness;
+module.exports.broadcastQueueRefresh = broadcastQueueRefresh;

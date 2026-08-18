@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Card } from '@/components/ui/form';
 import { api } from '@/services/api';
@@ -11,12 +12,13 @@ export default function ExploreScreen() {
   const theme = useTheme();
   const router = useRouter();
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (query?: string) => {
     try {
-      const data = await api.nearby();
+      const data = await api.nearby(query?.trim() ? { search: query.trim() } : undefined);
       setBusinesses(data.businesses || []);
     } catch (err) {
       console.warn('Explore load error:', err);
@@ -30,11 +32,18 @@ export default function ExploreScreen() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      load(search);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search, load]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await load();
+    await load(search);
     setRefreshing(false);
-  }, [load]);
+  }, [load, search]);
 
   return (
     <FlatList
@@ -43,12 +52,25 @@ export default function ExploreScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.tint} />}
       data={businesses}
       keyExtractor={(item) => item._id}
+      keyboardShouldPersistTaps="handled"
       ListHeaderComponent={
         <>
           <Text style={[styles.title, { color: theme.text }]}>Explore</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Find a place and book your spot
           </Text>
+
+          <View style={[styles.searchBox, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
+            <Ionicons name="search" size={16} color={theme.textSecondary} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search services or businesses…"
+              placeholderTextColor={theme.textSecondary}
+              style={[styles.searchInput, { color: theme.text }]}
+              autoCorrect={false}
+            />
+          </View>
         </>
       }
       renderItem={({ item }) => (
@@ -74,9 +96,12 @@ export default function ExploreScreen() {
                   </Text>
                 </View>
               )}
-              <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                ⭐ {item.averageRating || item.rating || '—'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="star" size={13} color="#fbbf24" />
+                <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                  {item.averageRating || item.rating || '—'}
+                </Text>
+              </View>
               {item.distanceKm != null && (
                 <Text style={{ color: theme.textSecondary, fontSize: 12 }}>{item.distanceKm} km</Text>
               )}
@@ -84,10 +109,10 @@ export default function ExploreScreen() {
 
             <View style={[styles.queueBar, { borderTopColor: theme.border }]}>
               <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                {item.liveQueue?.waiting ?? 0} waiting
+                {item.liveQueue?.waiting != null ? `${item.liveQueue.waiting} waiting` : '— waiting'}
               </Text>
               <Text style={{ color: theme.tint, fontSize: 12, fontWeight: '600' }}>
-                ~{item.liveQueue?.estimatedWaitTime ?? 0} min wait
+                {item.liveQueue?.estimatedWaitTime != null ? `~${item.liveQueue.estimatedWaitTime} min wait` : 'wait unknown'}
               </Text>
             </View>
           </Card>
@@ -114,6 +139,20 @@ const styles = StyleSheet.create({
   },
   bizCard: {
     marginBottom: Spacing.three,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: Spacing.two,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
   },
   row: {
     flexDirection: 'row',
