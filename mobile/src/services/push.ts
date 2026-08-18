@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { api } from '@/services/api';
 
 type NotificationsModule = typeof import('expo-notifications');
@@ -91,6 +92,7 @@ export async function getPushToken(): Promise<PushToken> {
       name: 'QueueBook',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
+      sound: 'default',
     });
   }
 
@@ -154,6 +156,15 @@ export function setupForegroundHandler() {
       shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
+      shouldVibrate: true,
     }),
   });
+}
+
+/**
+ * Trigger a haptic pulse for important events (e.g. "your turn").
+ * Safe to call anywhere; silently no-ops when haptics are unavailable.
+ */
+export function vibrateForTurn() {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
 }

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card } from '@/components/ui/form';
+import { Button } from '@/components/ui/form';
 import { useAuth } from '@/context/auth';
 import { api } from '@/services/api';
 import { useTheme } from '@/hooks/use-theme';
@@ -16,6 +17,7 @@ export default function HomeScreen() {
   const [dashboard, setDashboard] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [checkingIn, setCheckingIn] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -48,6 +50,24 @@ export default function HomeScreen() {
 
   const activeQueue = dashboard?.activeQueue;
   const queueStatus = dashboard?.queueStatus;
+  const upcomingAppointment = dashboard?.upcomingAppointment;
+  const canCheckin = upcomingAppointment && upcomingAppointment.status === 'confirmed';
+
+  const handleCheckin = async () => {
+    if (!upcomingAppointment) return;
+    setCheckingIn(true);
+    try {
+      await api.appointments.checkin(upcomingAppointment._id);
+      Alert.alert('Checked in', 'You are now in the queue. We will notify you when your turn is near.', [
+        { text: 'View Queue', onPress: () => router.push('/queue') },
+      ]);
+      await load();
+    } catch (err: any) {
+      Alert.alert('Check-in failed', err.message || 'Please try again');
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   return (
     <FlatList
@@ -92,16 +112,27 @@ export default function HomeScreen() {
             </Pressable>
           )}
 
-          {dashboard?.upcomingAppointment ? (
+          {upcomingAppointment ? (
             <Card>
               <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>UPCOMING APPOINTMENT</Text>
               <Text style={[styles.itemTitle, { color: theme.text }]}>
-                {dashboard.upcomingAppointment.business?.name}
+                {upcomingAppointment.business?.name}
               </Text>
               <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
-                {dashboard.upcomingAppointment.service} ·{' '}
-                {dashboard.upcomingAppointment.timeSlot} · {dashboard.upcomingAppointment.date?.slice(0, 10)}
+                {upcomingAppointment.service} ·{' '}
+                {upcomingAppointment.timeSlot} · {upcomingAppointment.date?.slice(0, 10)}
               </Text>
+              <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 4 }}>
+                Token: Q{upcomingAppointment.tokenNumber} · Status: {upcomingAppointment.status === 'checked_in' ? 'In Queue' : 'Booked'}
+              </Text>
+              {canCheckin && !activeQueue && (
+                <Button
+                  title={checkingIn ? 'Checking in...' : 'Check In Now'}
+                  onPress={handleCheckin}
+                  loading={checkingIn}
+                  style={{ marginTop: Spacing.two }}
+                />
+              )}
             </Card>
           ) : null}
 

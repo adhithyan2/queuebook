@@ -77,12 +77,20 @@ export const api = {
     create: (data: { business: string; service: string; date: string; timeSlot: string }) =>
       request('/appointments', { body: data }),
     getAll: () => request<{ appointments: any[] }>('/appointments'),
+    checkin: (id: string) => request<{ appointment: any; queue: any }>(`/appointments/${id}/checkin`, { method: 'PUT' }),
   },
 
   queue: {
     my: () => request<{ queues: any[] }>('/queue/my'),
     status: (id: string) => request<{ queue: any; peopleAhead: number; currentToken: number | null }>(`/queue/${id}/status`),
     leave: (id: string) => request(`/queue/${id}/leave`, { method: 'PUT' }),
+  },
+
+  slots: {
+    get: (business: string, date: string, service?: string) =>
+      request<{ slots: { time: string; available: boolean }[]; interval: number }>(
+        `/customer/slots?business=${business}&date=${date}${service ? `&service=${encodeURIComponent(service)}` : ''}`
+      ),
   },
 
   notifications: {

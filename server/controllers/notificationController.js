@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const MessageLog = require('../models/MessageLog');
 const Business = require('../models/Business');
+const { sendUserPush } = require('../services/pushService');
 
 exports.registerPushToken = async (req, res, next) => {
   try {
@@ -101,6 +102,19 @@ exports.getMessageLogs = async (req, res, next) => {
       .limit(100);
 
     res.json({ logs });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.testPush = async (req, res, next) => {
+  try {
+    const result = await sendUserPush(req.user, {
+      title: 'QueueBook Test',
+      body: 'Push notifications are working! You will receive alerts when your queue position updates.',
+      data: { type: 'test' },
+    });
+    res.json({ message: 'Test push sent', result });
   } catch (error) {
     next(error);
   }

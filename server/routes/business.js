@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDashboard, getProfile, createOrUpdateProfile, callNext, skipCustomer, completeAppointment, getAnalytics, addWalkIn } = require('../controllers/businessController');
+const { getDashboard, getProfile, createOrUpdateProfile, callNext, skipCustomer, completeAppointment, getAnalytics, addWalkIn, businessCheckin } = require('../controllers/businessController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,5 +13,6 @@ router.post('/queue/call-next', protect, authorize('business'), callNext);
 router.put('/queue/:id/skip', protect, authorize('business'), skipCustomer);
 router.put('/queue/:id/complete', protect, authorize('business'), completeAppointment);
 router.post('/queue/walkin', protect, authorize('business'), addWalkIn);
+router.put('/appointment/:id/checkin', protect, authorize('business'), businessCheckin);
 
 module.exports = router;

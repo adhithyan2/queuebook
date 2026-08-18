@@ -68,6 +68,7 @@ export const businessAPI = {
   skipCustomer: (id) => API.put(`/business/queue/${id}/skip`),
   completeAppointment: (id) => API.put(`/business/queue/${id}/complete`),
   addWalkIn: (data) => API.post('/business/queue/walkin', data),
+  checkinAppointment: (id) => API.put(`/business/appointment/${id}/checkin`),
 };
 
 export const smartArrivalAPI = {

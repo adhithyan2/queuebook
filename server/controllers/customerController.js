@@ -55,7 +55,7 @@ exports.getDashboard = async (req, res, next) => {
 
     const upcomingAppointment = await Appointment.findOne({
       user: req.user._id,
-      status: { $in: ['pending', 'confirmed'] },
+      status: { $in: ['pending', 'confirmed', 'checked_in'] },
       date: { $gte: start },
     }).populate('business', 'name category address phone').sort({ date: 1 });
 
@@ -222,7 +222,7 @@ exports.getExploreBusinesses = async (req, res, next) => {
         const booked = await Appointment.countDocuments({
           business: b._id,
           date: { $gte: start, $lte: end },
-          status: { $in: ['pending', 'confirmed'] },
+          status: { $in: ['pending', 'confirmed', 'checked_in'] },
         });
         availableSlots = Math.max(0, totalSlots - booked);
       }
@@ -386,6 +386,60 @@ exports.verifyQueueToken = async (req, res, next) => {
         estimatedWaitTime: peopleAhead * (queue.business?.avgServiceTime || 5),
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getSlots = async (req, res, next) => {
+  try {
+    const { business, date, service } = req.query;
+    if (!business) {
+      return res.status(400).json({ message: 'business query parameter is required' });
+    }
+
+    const businessDoc = await Business.findById(business).select('name timeSlots services avgServiceTime');
+    if (!businessDoc) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    const open = businessDoc.timeSlots?.open || '09:00';
+    const close = businessDoc.timeSlots?.close || '18:00';
+    const interval = businessDoc.timeSlots?.interval || 30;
+
+    const serviceDoc = businessDoc.services?.find((s) => s.name === service);
+    const serviceDuration = serviceDoc?.duration || interval;
+
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const booked = await Appointment.find({
+      business,
+      date: { $gte: dayStart, $lte: dayEnd },
+      status: { $in: ['pending', 'confirmed', 'checked_in'] },
+    }).select('timeSlot');
+
+    const bookedSlots = new Set(booked.map((a) => a.timeSlot));
+
+    const [openH, openM] = open.split(':').map(Number);
+    const [closeH, closeM] = close.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+
+    const slots = [];
+    for (let m = openMin; m + serviceDuration <= closeMin; m += interval) {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      const slot = `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+      slots.push({
+        time: slot,
+        available: !bookedSlots.has(slot),
+      });
+    }
+
+    res.json({ slots, service: service || null, date, interval });
   } catch (error) {
     next(error);
   }

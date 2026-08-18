@@ -7,12 +7,6 @@ import { api } from '@/services/api';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
-const TIME_SLOTS: Record<string, string[]> = {
-  Morning: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'],
-  Afternoon: ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30'],
-  Evening: ['16:00', '16:30', '17:00', '17:30', '18:00', '18:30'],
-};
-
 export default function BookScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
@@ -24,6 +18,7 @@ export default function BookScreen() {
   const [time, setTime] = useState('');
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState('');
+  const [slots, setSlots] = useState<{ time: string; available: boolean }[]>([]);
 
   const days = useMemo(() => {
     const out: { date: string; day: string; num: number; month: string }[] = [];
@@ -50,6 +45,17 @@ export default function BookScreen() {
       })
       .catch((err: any) => setError(err.message || 'Failed to load business'));
   }, [id, days]);
+
+  useEffect(() => {
+    if (!id || !date || !service) return;
+    api.slots
+      .get(id, date, service)
+      .then((res) => {
+        setSlots(res.slots || []);
+        setTime('');
+      })
+      .catch(() => setSlots([]));
+  }, [id, date, service]);
 
   const handleBook = async () => {
     if (!service || !date || !time) {
@@ -146,27 +152,28 @@ export default function BookScreen() {
 
       <View style={{ marginTop: Spacing.three }}>
         <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>SELECT TIME</Text>
-        {Object.entries(TIME_SLOTS).map(([period, slots]) => (
-          <View key={period} style={{ marginBottom: Spacing.two }}>
-            <Text style={{ color: theme.textSecondary, fontSize: 12, fontWeight: '600', marginBottom: 6 }}>{period}</Text>
-            <View style={styles.timeGrid}>
-              {slots.map((t) => (
-                <Pressable
-                  key={t}
-                  onPress={() => setTime(t)}
-                  style={[
-                    styles.timeChip,
-                    {
-                      backgroundColor: time === t ? theme.tint : theme.backgroundElement,
-                      borderColor: time === t ? theme.tint : theme.border,
-                    },
-                  ]}>
-                  <Text style={{ color: time === t ? '#ffffff' : theme.text, fontSize: 13, fontWeight: '600' }}>{t}</Text>
-                </Pressable>
-              ))}
-            </View>
+        {slots.length > 0 ? (
+          <View style={styles.timeGrid}>
+            {slots.map((s) => (
+              <Pressable
+                key={s.time}
+                disabled={!s.available}
+                onPress={() => setTime(s.time)}
+                style={[
+                  styles.timeChip,
+                  {
+                    backgroundColor: time === s.time ? theme.tint : theme.backgroundElement,
+                    borderColor: time === s.time ? theme.tint : theme.border,
+                    opacity: s.available ? 1 : 0.4,
+                  },
+                ]}>
+                <Text style={{ color: time === s.time ? '#ffffff' : theme.text, fontSize: 13, fontWeight: '600' }}>{s.time}</Text>
+              </Pressable>
+            ))}
           </View>
-        ))}
+        ) : (
+          <Text style={{ color: theme.textSecondary, fontSize: 13 }}>Loading available slots…</Text>
+        )}
       </View>
 
       {error ? <Text style={{ color: theme.danger, fontSize: 13, marginTop: Spacing.two }}>{error}</Text> : null}

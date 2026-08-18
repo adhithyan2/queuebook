@@ -62,7 +62,15 @@ exports.getDashboard = async (req, res, next) => {
       skipped: await Queue.countDocuments({ business: business._id, queueDate: { $gte: start, $lte: end }, status: 'skipped' }),
     };
 
-    res.json({ business, queue: todayQueue, stats });
+    const todayAppointments = await Appointment.find({
+      business: business._id,
+      date: { $gte: start, $lte: end },
+      status: { $in: ['confirmed', 'checked_in'] },
+    })
+      .populate('user', 'name email phone')
+      .sort({ tokenNumber: 1 });
+
+    res.json({ business, queue: todayQueue, stats, todayAppointments });
   } catch (error) {
     next(error);
   }
@@ -139,6 +147,10 @@ exports.skipCustomer = async (req, res, next) => {
     ).populate('user', 'name email phone phoneVerified');
     if (!queue) {
       return res.status(404).json({ message: 'Queue entry not found' });
+    }
+
+    if (queue.appointment) {
+      await Appointment.findByIdAndUpdate(queue.appointment, { status: 'cancelled' });
     }
 
     const business = await Business.findById(queue.business).select('name avgServiceTime');
@@ -235,6 +247,88 @@ exports.addWalkIn = async (req, res, next) => {
     });
 
     res.status(201).json({ queue });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.businessCheckin = async (req, res, next) => {
+  try {
+    const business = await Business.findOne({ owner: req.user._id });
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+    if (business.approvalStatus !== 'approved') {
+      return res.status(403).json({ message: 'Business must be approved before managing the queue' });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    if (appointment.business.toString() !== business._id.toString()) {
+      return res.status(403).json({ message: 'This appointment does not belong to your business' });
+    }
+
+    if (appointment.status === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot check in a cancelled appointment' });
+    }
+    if (appointment.status === 'completed') {
+      return res.status(400).json({ message: 'Appointment already completed' });
+    }
+    if (appointment.status === 'checked_in') {
+      const existingQueue = await Queue.findOne({ appointment: appointment._id });
+      if (existingQueue) {
+        return res.status(400).json({ message: 'Customer is already in the queue (Token ' + appointment.tokenNumber + ')' });
+      }
+    }
+
+    const existingQueue = await Queue.findOne({ appointment: appointment._id });
+    if (existingQueue) {
+      return res.status(400).json({ message: 'Customer already has a queue entry' });
+    }
+
+    const { start, end } = getTodayRange();
+
+    const waitingCount = await Queue.countDocuments({
+      business: business._id,
+      queueDate: { $gte: start, $lte: end },
+      status: { $in: ['waiting', 'called'] },
+      tokenNumber: { $lt: appointment.tokenNumber },
+    });
+
+    const queue = await Queue.create({
+      business: business._id,
+      user: appointment.user,
+      appointment: appointment._id,
+      tokenNumber: appointment.tokenNumber,
+      queueDate: start,
+      status: 'waiting',
+      position: waitingCount + 1,
+      estimatedWaitTime: calculateWaitTime(waitingCount, business.avgServiceTime),
+    });
+
+    appointment.status = 'checked_in';
+    await appointment.save();
+
+    const customer = await User.findById(appointment.user).select('name');
+
+    await notifyUser({
+      user: customer || { _id: appointment.user },
+      business,
+      queue,
+      appointment: appointment._id,
+      type: 'turn_coming',
+      templateData: {
+        businessName: business.name,
+        minutes: business.avgServiceTime || 5,
+      },
+    });
+
+    emitToBusiness(business._id, 'queue-refresh', { refresh: true, timestamp: new Date() });
+
+    res.json({ appointment, queue });
   } catch (error) {
     next(error);
   }

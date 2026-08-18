@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/context/auth';
-import { onNotificationTap, setupForegroundHandler } from '@/services/push';
+import { onNotificationTap, setupForegroundHandler, vibrateForTurn } from '@/services/push';
 import { connectSocket, disconnectSocket, subscribe } from '@/services/socket';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -31,6 +31,7 @@ function RootNavigator() {
     connectSocket();
     const unsubscribe = subscribe('new-notification', (payload) => {
       if (payload?.data?.type === 'turn_now') {
+        vibrateForTurn();
         Alert.alert("It's your turn!", payload.message || 'Please proceed to the service desk.', [
           { text: 'View Queue', onPress: () => router.push('/(tabs)/queue') },
           { text: 'OK', style: 'cancel' },
