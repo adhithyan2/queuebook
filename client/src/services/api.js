@@ -82,6 +82,22 @@ export const notificationAPI = {
   markAllRead: () => API.put('/notifications/read-all'),
 };
 
+export const uploadAPI = {
+  uploadImage: (file) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return API.post('/uploads', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  deleteImage: (url) => API.post('/uploads/delete', { url }),
+};
+
+export const imageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  const base = import.meta.env.PROD ? '' : 'http://localhost:5000';
+  return `${base}${path}`;
+};
+
 export const adminAPI = {
   getUsers: () => API.get('/admin/users'),
   getBusinesses: () => API.get('/admin/businesses'),
